@@ -1,6 +1,6 @@
-FROM  eclipse-temurin:22
+FROM  gradle:8.8.0-jdk22-jammy
 RUN mkdir /usr/src/myapp
 COPY . /usr/src/myapp
 WORKDIR /usr/src/myapp
-RUN ./gradlew build
-CMD ["./gradlew","bootRun"]
+RUN gradle build
+CMD ["gradle","bootRun"]

@@ -1,0 +1,50 @@
+{
+	"instructions": [
+		{
+			"type":"print",
+			"arg": {
+				"type": "directVal","value": "hello world"
+			}
+		},
+		{
+			"type": "copy",
+			"arg": {
+				"type": "directVal",
+				"value": {
+					"test": "test"
+				}
+			},
+			"pl": {
+				"type": "varAccess",
+				"name": "myvar",
+				"path": {"type": "directVal","value": []}
+			}
+		},
+		{
+			"type": "toint",
+			"arg": {
+				"type": "directVal",
+				"value": "2"
+			},
+			"pl": {
+				"type": "varAccess",
+				"name": "test"
+				
+			}
+		},
+		{
+			"type": "branch",
+			"arg": {
+				"type": "directVal","value": true
+			},
+			"label": "a label"
+		},
+		{
+			"type": "label",
+			"label": "a label"
+		},
+		{
+			"type": "exit"
+		}
+	]
+}

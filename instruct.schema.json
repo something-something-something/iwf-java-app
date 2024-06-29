@@ -1,0 +1,265 @@
+{
+	"title": "Instruct",
+	"type": "object",
+	"$defs": {
+		"value": {
+			"$anchor": "Value",
+			"properties": {
+				"type": {
+					"type": "string"
+				}
+			},
+			"required":["type"],
+			"oneOf": [
+				{
+					"$ref": "#DirectValue"
+				},
+				{
+					"$ref": "#VariableAccess"
+				}
+			]
+		},
+		"directValue": {
+			"$anchor": "DirectValue",
+			"properties": {
+				"type": {
+					"const": "directVal"
+				},
+				"value": {
+					"type": [
+						"string",
+						"number",
+						"integer",
+						"object",
+						"array",
+						"boolean",
+						"null"
+					]
+				}
+			},
+			"required": [
+				"type",
+				"value"
+			]
+		},
+		"variableAccess": {
+			"$anchor": "VariableAccess",
+			"properties": {
+				"type": {
+					"const": "varAccess"
+				},
+				"name": {
+					"type": "string"
+				},
+				"path": {
+						"$ref": "#Value"
+				}
+			},
+			"required": [
+				"type",
+				"name"
+				
+			]
+		},
+		"instruction": {
+			"$anchor": "Instruction",
+			"type": "object",
+			"properties": {
+				"type": "string"
+			},
+			"required": [
+				"type"
+			],
+			"oneOf": [
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "copy"
+						},
+						"arg": {
+							"$ref": "#Value"
+						},
+						"pl": {
+							"$ref": "#VariableAccess"
+						}
+					},
+					"required": [
+						"type",
+						"arg",
+						"pl"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "tostr"
+						},
+						"arg": {
+							"$ref": "#Value"
+						},
+						"pl": {
+							"$ref": "#VariableAccess"
+						}
+					},
+					"required": [
+						"type",
+						"arg",
+						"pl"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "toint"
+						},
+						"arg": {
+							"$ref": "#Value"
+						},
+						"pl": {
+							"$ref": "#VariableAccess"
+						}
+					},
+					"required": [
+						"type",
+						"arg",
+						"pl"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "len"
+						},
+						"arg": {
+							"$ref": "#Value"
+						},
+						"pl": {
+							"$ref": "#VariableAccess"
+						}
+					},
+					"required": [
+						"type",
+						"arg",
+						"pl"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "print"
+						},
+						"arg": {
+							"$ref": "#Value"
+						}
+					},
+					"required": [
+						"type",
+						"arg"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "rm"
+						},
+						"arg": {
+							"$ref": "#Value"
+						},
+						"path": {
+							"$ref": "#Value"
+						},
+						"pl": {
+							"$ref": "#VariableAccess"
+						}
+					},
+					"required": [
+						"type",
+						"arg",
+						"pl"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "exit"
+						}
+					},
+					"required": [
+						"type"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "branch"
+						},
+						"arg": {
+							"$ref": "#Value"
+						},
+						"label":{
+							"type":"string"
+						}
+					},
+					"required": [
+						"type","arg","label"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "label"
+						},
+						"label":{
+							"type":"string"
+						}
+					},
+					"required": [
+						"type","label"
+					]
+				},
+				{
+					"type": "add",
+					"properties": {
+						"type": {
+							"const": "add"
+						},
+						"args": {
+							"type": "array",
+							"items": {
+								"$ref": "#Value"
+							}
+						},
+						"pl": {
+							"$ref": "#VariableAccess"
+						}
+					},
+					"required": [
+						"type",
+						"args",
+						"pl"
+					]
+				}
+			]
+		}
+	},
+	"properties": {
+		"instructions": {
+			"type": "array",
+			"items": {
+				"$ref": "#Instruction"
+			}
+		}
+	},
+	"required": [
+		"instructions"
+	]
+}

@@ -1,0 +1,9 @@
+{
+	"json.schemas": [
+		{
+			"fileMatch": ["**/*.instruct.json"],
+			"url": "./instruct.schema.json"
+		}
+	],
+	"json.validate.enable": true,
+}

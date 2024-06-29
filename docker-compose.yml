@@ -23,6 +23,6 @@ services:
       - 8803
     develop:
       watch: 
-        - path: ./
+        - path: ./src/main/java
           action: sync+restart
           target: /usr/src/myapp

@@ -1,0 +1,33 @@
+{
+	"instructions": [
+		{
+			"type": "copy",
+			"arg": {
+				"type": "directVal",
+				"value": {
+					"hello": "world"
+				}
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "test",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "directVal",
+				"value": {
+					"hello": "world"
+				}
+			}
+		},
+		{
+			"type": "exit"
+		}
+	]
+}

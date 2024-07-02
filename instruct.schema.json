@@ -57,8 +57,8 @@
 			},
 			"required": [
 				"type",
-				"name"
-				
+				"name",
+				"path"
 			]
 		},
 		"instruction": {
@@ -80,14 +80,14 @@
 						"arg": {
 							"$ref": "#Value"
 						},
-						"pl": {
+						"res": {
 							"$ref": "#VariableAccess"
 						}
 					},
 					"required": [
 						"type",
 						"arg",
-						"pl"
+						"res"
 					]
 				},
 				{
@@ -99,14 +99,14 @@
 						"arg": {
 							"$ref": "#Value"
 						},
-						"pl": {
+						"res": {
 							"$ref": "#VariableAccess"
 						}
 					},
 					"required": [
 						"type",
 						"arg",
-						"pl"
+						"res"
 					]
 				},
 				{
@@ -118,14 +118,14 @@
 						"arg": {
 							"$ref": "#Value"
 						},
-						"pl": {
+						"res": {
 							"$ref": "#VariableAccess"
 						}
 					},
 					"required": [
 						"type",
 						"arg",
-						"pl"
+						"res"
 					]
 				},
 				{
@@ -137,14 +137,14 @@
 						"arg": {
 							"$ref": "#Value"
 						},
-						"pl": {
+						"res": {
 							"$ref": "#VariableAccess"
 						}
 					},
 					"required": [
 						"type",
 						"arg",
-						"pl"
+						"res"
 					]
 				},
 				{
@@ -174,14 +174,14 @@
 						"path": {
 							"$ref": "#Value"
 						},
-						"pl": {
+						"res": {
 							"$ref": "#VariableAccess"
 						}
 					},
 					"required": [
 						"type",
 						"arg",
-						"pl"
+						"res"
 					]
 				},
 				{
@@ -238,14 +238,14 @@
 								"$ref": "#Value"
 							}
 						},
-						"pl": {
+						"res": {
 							"$ref": "#VariableAccess"
 						}
 					},
 					"required": [
 						"type",
 						"args",
-						"pl"
+						"res"
 					]
 				}
 			]

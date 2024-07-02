@@ -1,8 +1,5 @@
 package ekrebs.iwf.web.config;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 import ekrebs.iwf.web.workflows.TestWorkflow;
 import io.iworkflow.core.Client;
 import io.iworkflow.core.ClientOptions;
@@ -10,6 +7,10 @@ import io.iworkflow.core.JacksonJsonObjectEncoder;
 import io.iworkflow.core.Registry;
 import io.iworkflow.core.WorkerOptions;
 import io.iworkflow.core.WorkerService;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
 public class Config {

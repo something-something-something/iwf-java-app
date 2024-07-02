@@ -23,6 +23,12 @@ services:
       - 8803
     develop:
       watch: 
-        - path: ./src/main/java
+        - path: ./src/main/
           action: sync+restart
-          target: /usr/src/myapp
+          target: /usr/src/myapp/src/main/
+  frontend:
+    image: nginx
+    ports:
+      - 127.0.0.1:8090:80
+    volumes:
+      - ./js/:/usr/share/nginx/html/js

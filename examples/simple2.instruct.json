@@ -1,0 +1,95 @@
+{
+	"instructions": [
+		{
+			"type": "copy",
+			"arg": {
+				"type": "directVal",
+				"value": {
+					"hello": "world"
+				}
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "test",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "varAccess",
+				"name": "test",
+				"path": {
+					"type": "directVal",
+					"value": [
+						"hello"
+					]
+				}
+			}
+		},
+		{
+			"type": "copy",
+			"arg": {
+				"type": "varAccess",
+				"name": "test",
+				"path": {
+					"type": "directVal",
+					"value": ["hello"]
+				}
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "test2",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "varAccess",
+				"name": "test2",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "copy",
+			"arg": {
+				"type": "directVal","value": "earth"
+				
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "test",
+				"path": {
+					"type": "directVal",
+					"value": ["hi"]
+				}
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "varAccess",
+				"name": "test",
+				"path": {
+					"type": "directVal",
+					"value": [
+						
+					]
+				}
+			}
+		},
+		{
+			"type": "exit"
+		}
+	]
+}

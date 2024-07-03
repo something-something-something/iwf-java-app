@@ -1,23 +1,25 @@
 package ekrebs.iwf.web.exec;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeCreator;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import ekrebs.iwf.web.exec.Exec.Data.VariableAccess;
+import ekrebs.iwf.web.exec.Exec.Instruction.Branch;
 import ekrebs.iwf.web.exec.Exec.Instruction.Copy;
 import ekrebs.iwf.web.exec.Exec.Instruction.Exit;
+import ekrebs.iwf.web.exec.Exec.Instruction.Label;
 import ekrebs.iwf.web.exec.Exec.Instruction.Print;
 import ekrebs.iwf.web.exec.ExecVisitor.VariableChanges.Update;
 import ekrebs.iwf.web.workflows.TestWorkflow.PersistenceVar;
 import io.iworkflow.core.persistence.Persistence;
 import java.util.List;
+import java.util.Map;
+
 
 public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.ExecutionResult> {
 
-	public record ExecutionContext(int execPointer, String SourceKey,String execEnv, Persistence persistence,ObjectMapper objectMapper) {
+	public record ExecutionContext(int execPointer, String SourceKey,String execEnv, Persistence persistence,ObjectMapper objectMapper,Map<String,Integer> labeledBookmarks) {
 
 	}
 
@@ -43,8 +45,10 @@ public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.Executio
 		
 
 		public final class SimpleExecutionResult implements ExecutionResult {
-			final ExecutionContext executionContext;
-			final List<VariableChanges> variableChanges;
+			private final ExecutionContext executionContext;
+			private final List<VariableChanges> variableChanges;
+			private final List<State> states;
+
 
 			final boolean shouldExit;
 			
@@ -52,6 +56,7 @@ public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.Executio
 				this.executionContext = executionContext;
 				this.variableChanges = List.of();
 				this.shouldExit=shouldExit;
+				this.states=defaultNextState();
 		
 			}
 
@@ -59,6 +64,15 @@ public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.Executio
 				this.executionContext = executionContext;
 				this.variableChanges = variableChanges;
 				this.shouldExit=false;
+				this.states=defaultNextState();
+		
+			}
+
+			public SimpleExecutionResult(ExecutionContext executionContext,List<VariableChanges> variableChanges,List<State> states) {
+				this.executionContext = executionContext;
+				this.variableChanges = variableChanges;
+				this.shouldExit=false;
+				this.states=states;
 		
 			}
 
@@ -66,12 +80,18 @@ public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.Executio
 				this.executionContext = executionContext;
 				this.variableChanges = List.of();
 				this.shouldExit=false;
+				this.states=defaultNextState();
 		
 			}
 
 
+			
 			@Override
 			public List<State> states() {
+				return this.states;
+			}
+
+			private List<State> defaultNextState() {
 				return List.of(new State(executionContext.execPointer()+1, executionContext.SourceKey(),executionContext.execEnv()));
 			}
 
@@ -166,6 +186,25 @@ public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.Executio
 
 		System.out.println( getValue(inst.arg(), this.executionContext.persistence, this.executionContext.execEnv));
 		return new  ExecutionResult.SimpleExecutionResult(executionContext);
+	}
+
+	@Override
+	public ExecutionResult vist(Label inst) {
+		return new ExecutionResult.SimpleExecutionResult(executionContext);
+	}
+
+	@Override
+	public ExecutionResult vist(Branch inst) {
+
+
+		var argValue=getValue(inst.arg(), this.executionContext.persistence,this.executionContext.execEnv );
+
+		var state=new State(executionContext.labeledBookmarks.get(inst.label()), executionContext.SourceKey, executionContext.execEnv);
+		if(argValue.asBoolean()){
+			return new ExecutionResult.SimpleExecutionResult(executionContext,List.of(),List.of(state));
+		}
+		return new ExecutionResult.SimpleExecutionResult(executionContext);
+		
 	}
 
 }

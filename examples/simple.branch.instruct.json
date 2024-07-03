@@ -1,0 +1,40 @@
+{
+	"instructions": [
+		{
+			"type": "print",
+			"arg": {
+				"type": "directVal",
+				"value": "start"
+			}
+		},
+		{
+			"type": "branch",
+			"label": "skip",
+			"arg": {
+				"type": "directVal",
+				"value": true
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "directVal",
+				"value": "Do not print"
+			}
+		},
+		{
+			"type": "label",
+			"label": "skip"
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "directVal",
+				"value": "Do print"
+			}
+		},
+		{
+			"type": "exit"
+		}
+	]
+}

@@ -10,20 +10,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
 
 public class Exec {
 
-	@JsonTypeInfo(
-		use=JsonTypeInfo.Id.NAME,
-		include=JsonTypeInfo.As.PROPERTY,
-		property = "type"
-	)
-	@JsonSubTypes(
-		{
-			@Type(value=Data.VariableAccess.class,name="varAccess"),
-			@Type(value=Data.DirectValue.class,name="directVal")
-		}
-	)
+	@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+	@JsonSubTypes({
+			@Type(value = Data.VariableAccess.class, name = "varAccess"),
+			@Type(value = Data.DirectValue.class, name = "directVal")
+	})
 	sealed interface Data {
 		record VariableAccess(String name, Data path) implements Data {
 		};
@@ -33,18 +30,14 @@ public class Exec {
 
 	}
 
-	@JsonTypeInfo(
-		use=JsonTypeInfo.Id.NAME,
-		include=JsonTypeInfo.As.PROPERTY,
-		property = "type"
-	)
-	@JsonSubTypes(
-		{
-			@Type(value=Instruction.Copy.class,name="copy"),
-			@Type(value=Instruction.Print.class,name="print"),
-			@Type(value=Instruction.Exit.class,name="exit")
-		}
-	)
+	@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+	@JsonSubTypes({
+			@Type(value = Instruction.Copy.class, name = "copy"),
+			@Type(value = Instruction.Print.class, name = "print"),
+			@Type(value = Instruction.Exit.class, name = "exit"),
+			@Type(value = Instruction.Label.class, name = "label"),
+			@Type(value = Instruction.Branch.class, name = "branch"),
+	})
 	public sealed interface Instruction {
 		<T> T accept(InstructionVisitor<T> visitor);
 
@@ -71,6 +64,22 @@ public class Exec {
 				return v.vist(this);
 			}
 		}
+
+		record Label(String label) implements Instruction {
+
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+		}
+
+		record Branch(Data arg, String label) implements Instruction {
+
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+		}
 	}
 
 	interface InstructionVisitor<T> {
@@ -80,19 +89,23 @@ public class Exec {
 		T vist(Instruction.Exit inst);
 
 		T vist(Instruction.Print inst);
+
+		T vist(Instruction.Label inst);
+
+		T vist(Instruction.Branch inst);
 	}
 
-	public record ParseResult(List<Instruction> instructions, List<ParseError> errors) {
+	public record ParseResult(List<Instruction> instructions, List<ParseError> errors,Map<String,Integer> labeledBookmarks) {
 	}
 
 	record ParseError(List<Object> path, String message) {
 	}
 
 	public static ParseResult parse(JsonNode jsonNode) {
-
+		var labeledBookmarks=new HashMap<String,Integer>();
 		var instructions = new ArrayList<Instruction>();
 		var errs = new ArrayList<ParseError>();
-		var results = new ParseResult(instructions, errs);
+		var results = new ParseResult(instructions, errs,labeledBookmarks);
 		if (!jsonNode.isObject()) {
 			errs.add(new ParseError(Arrays.asList(), "Root is not an object"));
 			return results;
@@ -119,7 +132,7 @@ public class Exec {
 				errs.add(new ParseError(iep(i), "Missing type"));
 				instructions.add(new Instruction.Exit());
 			} else {
-				var parsedInstruction = parseInstruction(instNode, i);
+				var parsedInstruction = parseInstruction(instNode, i,labeledBookmarks);
 
 				instructions.add(parsedInstruction.instruction());
 				errs.addAll(parsedInstruction.errors());
@@ -133,30 +146,55 @@ public class Exec {
 	record InstructionAndErrors(Instruction instruction, List<ParseError> errors) {
 	}
 
-	private static InstructionAndErrors parseInstruction(JsonNode instNode, int index) {
+	private static InstructionAndErrors parseInstruction(JsonNode instNode, int index, Map<String,Integer> labeledBookmarks) {
 		var errs = new ArrayList<ParseError>();
 		var type = instNode.path("type").asText();
 		final Instruction instruction;
 		if (type.equals("exit")) {
 			instruction = new Instruction.Exit();
-		}
-		else if (type.equals("copy")) {
+		} else if (type.equals("copy")) {
 
 			var argres = parseValue(instNode.path("arg"), List.of(index));
-		     errs.addAll( argres.errors());
-			
+			errs.addAll(argres.errors());
+
 			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
-			errs.addAll( resres.errors());
+			errs.addAll(resres.errors());
 
 			instruction = new Instruction.Copy(argres.value, resres.value);
-		} 
-		else if (type.equals("print")) {
+		} else if (type.equals("print")) {
 
 			var argres = parseValue(instNode.path("arg"), List.of(index));
-			errs.addAll( argres.errors());
+			errs.addAll(argres.errors());
 			instruction = new Instruction.Print(argres.value);
-		} 
-		else {
+		} else if (type.equals("label")) {
+
+			var label = instNode.path("label");
+			if (label.isTextual()) {
+				labeledBookmarks.put(label.asText(), index);
+				instruction = new Instruction.Label(label.asText());
+			} else {
+				errs.add(new ParseError(iep(index, "label"), "Label is not understood"));
+				instruction = new Instruction.Exit();
+			}
+
+		} else if (type.equals("branch")) {
+
+			var label = instNode.path("label");
+			if (!label.isTextual()) {
+				errs.add(new ParseError(iep(index, "label"), "Label is not understood"));
+
+			}
+			var arg= instNode.path("arg");
+			var argPargeResult =parseValue(arg, List.of(index));
+
+			errs.addAll(argPargeResult.errors());
+			if (errs.size() > 0) {
+				instruction = new Instruction.Exit();
+			} else {
+				instruction = new Instruction.Branch(argPargeResult.value(),label.asText());
+			}
+
+		} else {
 			errs.add(new ParseError(iep(index, "type"), "notRecognized type " + type));
 			instruction = new Instruction.Exit();
 		}
@@ -175,7 +213,7 @@ public class Exec {
 
 			var res = parseDirectValue((ObjectNode) node, path);
 
-			var z=res.value();
+			var z = res.value();
 			return new ValueAndErrors(res.value, res.errors());
 		} else if (node.path("type").asText().equals("varAccess")) {
 
@@ -187,7 +225,8 @@ public class Exec {
 			errpath.addAll(path);
 			errpath.add("type");
 			return new ValueAndErrors(null,
-					Arrays.asList(new ParseError(iep(errpath), "unexpected type"+node.path("type").asText())));
+					Arrays.asList(new ParseError(iep(errpath),
+							"unexpected type" + node.path("type").asText())));
 
 		}
 	}
@@ -207,12 +246,11 @@ public class Exec {
 		return new DirectValueAndErrors(dv, errs);
 	}
 
-	record VarAccessAndErrors(Data.VariableAccess value, List<ParseError> errors) {
+	record VarAccessAndErrors( Data.VariableAccess value, List<ParseError> errors) {
 	}
 
 	private static VarAccessAndErrors parseVarAccess(ObjectNode node, List<Object> path) {
 		// TODO STUFF
-
 
 		if (node.path("name").isMissingNode()) {
 			return new VarAccessAndErrors(null, Arrays.asList(new ParseError(iep(path)
@@ -232,10 +270,9 @@ public class Exec {
 		if (pathparsed.errors().size() > 0) {
 			return new VarAccessAndErrors(null, pathparsed.errors);
 		}
-		var dv = 
-				new Data.VariableAccess(
-						node.path("name").asText(),
-						pathparsed.value);
+		var dv = new Data.VariableAccess(
+				node.path("name").asText(),
+				pathparsed.value);
 		List<ParseError> errs = List.of();
 
 		return new VarAccessAndErrors(dv, errs);
@@ -257,10 +294,9 @@ public class Exec {
 		return ar;
 	}
 
-	public static JsonNode getValueAtPath(JsonNode source,JsonNode jsonpath) {
+	public static JsonNode getValueAtPath(JsonNode source, JsonNode jsonpath) {
 
 		var path = getListObjectJsonPathFromJsonNode(jsonpath);
-
 
 		var curJ = source;
 		for (var o : path) {

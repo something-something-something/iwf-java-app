@@ -1,0 +1,105 @@
+{
+	"instructions": [
+		{
+			"type": "copy",
+			"arg": {
+				"type": "directVal",
+				"value": {
+					"hello": "world"
+				}
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "test",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "mkdisp",
+			"res": {
+				"type": "varAccess",
+				"name": "disp",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "mkpromise",
+			"res": {
+				"type": "varAccess",
+				"name": "promise",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "updisp",
+			"dispArg": {
+				"type": "directVal",
+				"value": {
+					"type": "customElement",
+					"elementName": "show-var",
+					"module": "/js/counter.js",
+					"attributes": {
+						"test": "test"
+					},
+					"properties": {}
+				}
+			},
+			"dispIdArg": {
+				"type": "varAccess",
+				"name": "disp",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"inputPromiseArg": {
+				"type": "varAccess",
+				"name": "promise",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "await",
+			"arg": {
+				"type": "varAccess",
+				"name": "promise",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "promiseval",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "directVal",
+				"value": {
+					"hello": "world"
+				}
+			}
+		},
+		{
+			"type": "exit"
+		}
+	]
+}

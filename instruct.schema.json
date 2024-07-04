@@ -94,6 +94,80 @@
 					"type": "object",
 					"properties": {
 						"type": {
+							"const": "mkdisp"
+						},
+						"res": {
+							"$ref": "#VariableAccess"
+						}
+					},
+					"required": [
+						"type",
+						"res"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "updisp"
+						},
+						"inputPromiseArg": {
+							"$ref": "#Value"
+						},
+						"dispIdArg": {
+							"$ref": "#Value"
+						},
+						"dispArg": {
+							"$ref": "#Value"
+						}
+						
+					},
+					"required": [
+						"type",
+						"inputPromiseArg",
+						"dispArg",
+						"dispIdArg"
+
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "mkpromise"
+						},
+						"res": {
+							"$ref": "#VariableAccess"
+						}
+					},
+					"required": [
+						"type",
+						"res"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "await"
+						},
+						"arg": {
+							"$ref": "#Value"
+						},
+						"res": {
+							"$ref": "#VariableAccess"
+						}
+					},
+					"required": [
+						"type",
+						"arg",
+						"res"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
 							"const": "tostr"
 						},
 						"arg": {
@@ -227,16 +301,20 @@
 					]
 				},
 				{
-					"type": "add",
+					"type": "object",
 					"properties": {
 						"type": {
 							"const": "add"
 						},
-						"args": {
-							"type": "array",
-							"items": {
+						"arg1": {
+							
 								"$ref": "#Value"
-							}
+							
+						},
+						"arg2": {
+							
+								"$ref": "#Value"
+							
 						},
 						"res": {
 							"$ref": "#VariableAccess"
@@ -244,7 +322,170 @@
 					},
 					"required": [
 						"type",
-						"args",
+						"arg1",
+						"arg2",
+						"res"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "minus"
+						},
+						"arg1": {
+							
+								"$ref": "#Value"
+							
+						},
+						"arg2": {
+							
+								"$ref": "#Value"
+							
+						},
+						"res": {
+							"$ref": "#VariableAccess"
+						}
+					},
+					"required": [
+						"type",
+						"arg1",
+						"arg2",
+						"res"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "eq"
+						},
+						"arg1": {
+							
+								"$ref": "#Value"
+							
+						},
+						"arg2": {
+							
+								"$ref": "#Value"
+							
+						},
+						"res": {
+							"$ref": "#VariableAccess"
+						}
+					},
+					"required": [
+						"type",
+						"arg1",
+						"arg2",
+						"res"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "gt"
+						},
+						"arg1": {
+							
+								"$ref": "#Value"
+							
+						},
+						"arg2": {
+							
+								"$ref": "#Value"
+							
+						},
+						"res": {
+							"$ref": "#VariableAccess"
+						}
+					},
+					"required": [
+						"type",
+						"arg1",
+						"arg2",
+						"res"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "lt"
+						},
+						"arg1": {
+							
+								"$ref": "#Value"
+							
+						},
+						"arg2": {
+							
+								"$ref": "#Value"
+							
+						},
+						"res": {
+							"$ref": "#VariableAccess"
+						}
+					},
+					"required": [
+						"type",
+						"arg1",
+						"arg2",
+						"res"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "and"
+						},
+						"arg1": {
+							
+								"$ref": "#Value"
+							
+						},
+						"arg2": {
+							
+								"$ref": "#Value"
+							
+						},
+						"res": {
+							"$ref": "#VariableAccess"
+						}
+					},
+					"required": [
+						"type",
+						"arg1",
+						"arg2",
+						"res"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "or"
+						},
+						"arg1": {
+							
+								"$ref": "#Value"
+							
+						},
+						"arg2": {
+							
+								"$ref": "#Value"
+							
+						},
+						"res": {
+							"$ref": "#VariableAccess"
+						}
+					},
+					"required": [
+						"type",
+						"arg1",
+						"arg2",
 						"res"
 					]
 				}

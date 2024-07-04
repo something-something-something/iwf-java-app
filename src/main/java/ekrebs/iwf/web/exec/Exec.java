@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
-
 public class Exec {
 
 	@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
@@ -37,6 +36,13 @@ public class Exec {
 			@Type(value = Instruction.Exit.class, name = "exit"),
 			@Type(value = Instruction.Label.class, name = "label"),
 			@Type(value = Instruction.Branch.class, name = "branch"),
+			@Type(value = Instruction.MakePromise.class, name = "mkpromise"),
+			@Type(value = Instruction.AwaitPromise.class, name = "await"),
+
+			@Type(value = Instruction.MakeDisplay.class, name = "mkdisp"),
+			@Type(value = Instruction.UpdateDisplay.class, name = "updisp"),
+			@Type(value = Instruction.Add.class, name = "add"),
+			@Type(value = Instruction.Minus.class, name = "minus"),
 	})
 	public sealed interface Instruction {
 		<T> T accept(InstructionVisitor<T> visitor);
@@ -80,6 +86,94 @@ public class Exec {
 				return v.vist(this);
 			}
 		}
+
+		record MakePromise(Data.VariableAccess res) implements Instruction {
+
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+		}
+
+		record AwaitPromise(Data arg, Data.VariableAccess res) implements Instruction {
+
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+		}
+
+		record MakeDisplay(Data.VariableAccess res) implements Instruction {
+
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+		}
+
+		record UpdateDisplay(Data inputPromiseArg, Data dispArg,Data dispIdArg) implements Instruction {
+
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+		}
+
+		record Add(Data arg1, Data arg2, Data.VariableAccess res) implements Instruction {
+
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+		}
+
+		record Minus(Data arg1, Data arg2, Data.VariableAccess res) implements Instruction {
+
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+		}
+
+		record Eq(Data arg1, Data arg2, Data.VariableAccess res) implements Instruction {
+
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+		}
+
+		record Gt(Data arg1, Data arg2, Data.VariableAccess res) implements Instruction {
+
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+		}
+
+		record Lt(Data arg1, Data arg2, Data.VariableAccess res) implements Instruction {
+
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+		}
+
+		record And(Data arg1, Data arg2, Data.VariableAccess res) implements Instruction {
+
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+		}
+
+		record Or(Data arg1, Data arg2, Data.VariableAccess res) implements Instruction {
+
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+		}
 	}
 
 	interface InstructionVisitor<T> {
@@ -93,19 +187,43 @@ public class Exec {
 		T vist(Instruction.Label inst);
 
 		T vist(Instruction.Branch inst);
+
+		T vist(Instruction.MakePromise inst);
+
+		T vist(Instruction.AwaitPromise inst);
+
+		T vist(Instruction.MakeDisplay inst);
+
+		T vist(Instruction.UpdateDisplay inst);
+
+		T vist(Instruction.Add inst);
+
+		T vist(Instruction.Minus inst);
+
+		T vist(Instruction.Eq inst);
+
+		T vist(Instruction.Gt inst);
+
+		T vist(Instruction.Lt inst);
+
+		T vist(Instruction.And inst);
+
+		T vist(Instruction.Or inst);
+
 	}
 
-	public record ParseResult(List<Instruction> instructions, List<ParseError> errors,Map<String,Integer> labeledBookmarks) {
+	public record ParseResult(List<Instruction> instructions, List<ParseError> errors,
+			Map<String, Integer> labeledBookmarks) {
 	}
 
 	record ParseError(List<Object> path, String message) {
 	}
 
 	public static ParseResult parse(JsonNode jsonNode) {
-		var labeledBookmarks=new HashMap<String,Integer>();
+		var labeledBookmarks = new HashMap<String, Integer>();
 		var instructions = new ArrayList<Instruction>();
 		var errs = new ArrayList<ParseError>();
-		var results = new ParseResult(instructions, errs,labeledBookmarks);
+		var results = new ParseResult(instructions, errs, labeledBookmarks);
 		if (!jsonNode.isObject()) {
 			errs.add(new ParseError(Arrays.asList(), "Root is not an object"));
 			return results;
@@ -132,7 +250,7 @@ public class Exec {
 				errs.add(new ParseError(iep(i), "Missing type"));
 				instructions.add(new Instruction.Exit());
 			} else {
-				var parsedInstruction = parseInstruction(instNode, i,labeledBookmarks);
+				var parsedInstruction = parseInstruction(instNode, i, labeledBookmarks);
 
 				instructions.add(parsedInstruction.instruction());
 				errs.addAll(parsedInstruction.errors());
@@ -146,7 +264,8 @@ public class Exec {
 	record InstructionAndErrors(Instruction instruction, List<ParseError> errors) {
 	}
 
-	private static InstructionAndErrors parseInstruction(JsonNode instNode, int index, Map<String,Integer> labeledBookmarks) {
+	private static InstructionAndErrors parseInstruction(JsonNode instNode, int index,
+			Map<String, Integer> labeledBookmarks) {
 		var errs = new ArrayList<ParseError>();
 		var type = instNode.path("type").asText();
 		final Instruction instruction;
@@ -184,17 +303,172 @@ public class Exec {
 				errs.add(new ParseError(iep(index, "label"), "Label is not understood"));
 
 			}
-			var arg= instNode.path("arg");
-			var argPargeResult =parseValue(arg, List.of(index));
+			var arg = instNode.path("arg");
+			var argPargeResult = parseValue(arg, List.of(index));
 
 			errs.addAll(argPargeResult.errors());
 			if (errs.size() > 0) {
 				instruction = new Instruction.Exit();
 			} else {
-				instruction = new Instruction.Branch(argPargeResult.value(),label.asText());
+				instruction = new Instruction.Branch(argPargeResult.value(), label.asText());
 			}
 
-		} else {
+		} else if (type.equals("mkdisp")) {
+
+			var res = instNode.path("res");
+			var resResult = parseVarAccess((ObjectNode) res, List.of(index));
+
+			errs.addAll(resResult.errors());
+			if (errs.size() > 0) {
+				instruction = new Instruction.Exit();
+			} else {
+				instruction = new Instruction.MakeDisplay(resResult.value());
+			}
+
+		}
+		else if (type.equals("mkpromise")) {
+
+			var res = instNode.path("res");
+			var resResult = parseVarAccess((ObjectNode) res, List.of(index));
+
+			errs.addAll(resResult.errors());
+			if (errs.size() > 0) {
+				instruction = new Instruction.Exit();
+			} else {
+				instruction = new Instruction.MakePromise(resResult.value());
+			}
+
+		}
+
+		else if (type.equals("updisp")) {
+
+			var inPromiseArg = instNode.path("inputPromiseArg");
+			var inputPromiseResult = parseValue(inPromiseArg, List.of(index));
+
+			var dispArg = instNode.path("dispArg");
+			var dispArgResult = parseValue(dispArg, List.of(index));
+			errs.addAll(dispArgResult.errors());
+
+			var dispIdArg = instNode.path("dispIdArg");
+			var dispIdArgResult = parseValue(dispIdArg, List.of(index));
+			errs.addAll(dispIdArgResult.errors());
+
+			if (errs.size() > 0) {
+				instruction = new Instruction.Exit();
+			} else {
+				instruction = new Instruction.UpdateDisplay(inputPromiseResult.value(),dispArgResult.value(),dispIdArgResult.value());
+			}
+
+		}
+		else if (type.equals("await")) {
+
+			var argres = parseValue(instNode.path("arg"), List.of(index));
+			errs.addAll(argres.errors());
+
+			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
+			errs.addAll(resres.errors());
+
+			instruction = new Instruction.AwaitPromise(argres.value, resres.value);
+		} 
+
+		else if (type.equals("add")) {
+
+			var argres1 = parseValue(instNode.path("arg1"), List.of(index));
+			errs.addAll(argres1.errors());
+
+			var argres2 = parseValue(instNode.path("arg2"), List.of(index));
+			errs.addAll(argres2.errors());
+
+			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
+			errs.addAll(resres.errors());
+
+			instruction = new Instruction.Add(argres1.value, argres2.value,resres.value);
+		} 
+
+		else if (type.equals("minus")) {
+
+			var argres1 = parseValue(instNode.path("arg1"), List.of(index));
+			errs.addAll(argres1.errors());
+
+			var argres2 = parseValue(instNode.path("arg2"), List.of(index));
+			errs.addAll(argres2.errors());
+
+			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
+			errs.addAll(resres.errors());
+
+			instruction = new Instruction.Minus(argres1.value, argres2.value,resres.value);
+		} 
+
+		else if (type.equals("eq")) {
+
+			var argres1 = parseValue(instNode.path("arg1"), List.of(index));
+			errs.addAll(argres1.errors());
+
+			var argres2 = parseValue(instNode.path("arg2"), List.of(index));
+			errs.addAll(argres2.errors());
+
+			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
+			errs.addAll(resres.errors());
+
+			instruction = new Instruction.Eq(argres1.value, argres2.value,resres.value);
+		} 
+
+		else if (type.equals("gt")) {
+
+			var argres1 = parseValue(instNode.path("arg1"), List.of(index));
+			errs.addAll(argres1.errors());
+
+			var argres2 = parseValue(instNode.path("arg2"), List.of(index));
+			errs.addAll(argres2.errors());
+
+			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
+			errs.addAll(resres.errors());
+
+			instruction = new Instruction.Gt(argres1.value, argres2.value,resres.value);
+		} 
+
+		else if (type.equals("lt")) {
+
+			var argres1 = parseValue(instNode.path("arg1"), List.of(index));
+			errs.addAll(argres1.errors());
+
+			var argres2 = parseValue(instNode.path("arg2"), List.of(index));
+			errs.addAll(argres2.errors());
+
+			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
+			errs.addAll(resres.errors());
+
+			instruction = new Instruction.Lt(argres1.value, argres2.value,resres.value);
+		} 
+		else if (type.equals("and")) {
+
+			var argres1 = parseValue(instNode.path("arg1"), List.of(index));
+			errs.addAll(argres1.errors());
+
+			var argres2 = parseValue(instNode.path("arg2"), List.of(index));
+			errs.addAll(argres2.errors());
+
+			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
+			errs.addAll(resres.errors());
+
+			instruction = new Instruction.And(argres1.value, argres2.value,resres.value);
+		} 
+		else if (type.equals("or")) {
+
+			var argres1 = parseValue(instNode.path("arg1"), List.of(index));
+			errs.addAll(argres1.errors());
+
+			var argres2 = parseValue(instNode.path("arg2"), List.of(index));
+			errs.addAll(argres2.errors());
+
+			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
+			errs.addAll(resres.errors());
+
+			instruction = new Instruction.Or(argres1.value, argres2.value,resres.value);
+		} 
+
+
+		else {
 			errs.add(new ParseError(iep(index, "type"), "notRecognized type " + type));
 			instruction = new Instruction.Exit();
 		}
@@ -246,7 +520,7 @@ public class Exec {
 		return new DirectValueAndErrors(dv, errs);
 	}
 
-	record VarAccessAndErrors( Data.VariableAccess value, List<ParseError> errors) {
+	record VarAccessAndErrors(Data.VariableAccess value, List<ParseError> errors) {
 	}
 
 	private static VarAccessAndErrors parseVarAccess(ObjectNode node, List<Object> path) {

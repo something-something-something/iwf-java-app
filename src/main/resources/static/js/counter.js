@@ -1,4 +1,7 @@
-customElements.define('start-form', class StartForm extends HTMLElement {
+import {sendDataToDisplay} from "sendData";
+
+
+customElements.define('show-var', class StartForm extends HTMLElement {
 	constructor() {
 		super()
 	}
@@ -6,14 +9,9 @@ customElements.define('start-form', class StartForm extends HTMLElement {
 		const shadow = this.attachShadow({ mode: 'open' });
 		shadow.addEventListener('submit', (ev) => {
 			ev.preventDefault();
-			const textarea = this.shadowRoot?.querySelector('textarea');
-			if (textarea !== null) {
-				const instructions = textarea?.value;
-				this.submitData(instructions)
+			
+			sendDataToDisplay({test:"123456"})
 
-
-
-			}
 
 
 		})
@@ -22,7 +20,7 @@ customElements.define('start-form', class StartForm extends HTMLElement {
 		shadow.innerHTML = `
 		<form>
 		
-		<textarea name="instructions"></textarea>
+		<pre> ${this.getAttribute('test')}</pre>
 		<input type="submit">
 		</form>
 		`
@@ -30,7 +28,7 @@ customElements.define('start-form', class StartForm extends HTMLElement {
 
 	}
 
-
+	
 	/**
 	 * @param {string | undefined} instructions
 	 */

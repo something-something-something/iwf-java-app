@@ -1,9 +1,30 @@
 {
+	"//": "Not implimented yet",
 	"instructions": [
 		{
-			"type":"print",
+			"type": "print",
 			"arg": {
-				"type": "directVal","value": "hello world"
+				"type": "directVal",
+				"value": "hello world"
+			}
+		},
+		{
+			"type": "or",
+			"arg1": {
+				"type": "directVal",
+				"value": true
+			},
+			"arg2": {
+				"type": "directVal",
+				"value": false
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
 			}
 		},
 		{
@@ -17,7 +38,10 @@
 			"res": {
 				"type": "varAccess",
 				"name": "myvar",
-				"path": {"type": "directVal","value": []}
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
 			}
 		},
 		{
@@ -28,14 +52,18 @@
 			},
 			"res": {
 				"type": "varAccess",
-				"name": "test"
-				
+				"name": "test",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
 			}
 		},
 		{
 			"type": "branch",
 			"arg": {
-				"type": "directVal","value": true
+				"type": "directVal",
+				"value": true
 			},
 			"label": "a label"
 		},

@@ -3,6 +3,10 @@
 		"checkJs": true,
 		"strict": true,
 		"module": "ESNext",
-		"lib": ["ESNext","DOM"]
+		"lib": [
+			"ESNext",
+			"DOM"
+		],
+		"allowImportingTsExtensions": true,"target": "ESNext"
 	}
 }

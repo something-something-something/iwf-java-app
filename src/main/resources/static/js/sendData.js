@@ -1,6 +1,6 @@
 
 /**
- * @param {import('./type').JSON} data
+ * @param {unknown} data
  */
 export async function sendDataToDisplay(data){
 

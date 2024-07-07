@@ -16,10 +16,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ekrebs.iwf.web.exec.Exec;
 import ekrebs.iwf.web.workflows.TestWorkflow;
+import ekrebs.iwf.web.workflows.TestWorkflow.PersistanceDisp;
 import ekrebs.iwf.web.workflows.TestWorkflow.SetPromiseValueInput;
 import io.iworkflow.core.Client;
+import io.iworkflow.core.persistence.Persistence;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -32,7 +36,7 @@ public class DisplayController {
 
 
 
-	private ExecutorService executerService=Executors.newCachedThreadPool();
+	private ExecutorService executerService=Executors.newVirtualThreadPerTaskExecutor();
 
 	public DisplayController(ObjectMapper objectMapper, Client client){
 		this.objectMapper = objectMapper;
@@ -67,19 +71,32 @@ public class DisplayController {
 	@GetMapping("/test")
 	public SseEmitter displaySSE(@RequestParam String workflowId,String displayId){
 		SseEmitter sse=new SseEmitter();
-
+		
 		executerService.execute(()->{
 			try {
-				for (var i=0;i<10;i++){
-
-					var rpcstub=client.newRpcStub(TestWorkflow.class, workflowId);
+				var currentid="";
+				
+				for(var i=0;i<(1000*10)/10;i++){
+					
+					//var rpcstub=client.newRpcStub(TestWorkflow.class, workflowId);
 	
 
-				var disp=client.invokeRPC(rpcstub::getDisplayState,displayId);
-					sse.send(SseEmitter.event().name("displaystatus").data(objectMapper.writeValueAsString(disp)).build());
+				//var disp=client.invokeRPC(rpcstub::getDisplayState,displayId);
+
+				var blah=client.getWorkflowDataAttributes(TestWorkflow.class, workflowId, List.of(PersistanceDisp.getKey(displayId)));
+				
+
+				
+				var disp=(PersistanceDisp)blah.get(PersistanceDisp.getKey(displayId));
+					if(!currentid.equals(disp.displayUpdateuuid())){
+						currentid=disp.displayUpdateuuid();
 					
-					Thread.sleep(1000);
+					sse.send(SseEmitter.event().name("displaystatus").data(objectMapper.writeValueAsString(disp)).build());
+					}
+					
+					Thread.sleep(10);
 				}
+				sse.send(SseEmitter.event().name("closedByServer").data("{}").build());
 				
 				sse.complete();
 				
@@ -101,7 +118,8 @@ public class DisplayController {
 		<script type="importmap">
 		{
 			"imports":{
-				"sendData":"/js/sendData.js"
+				"sendData":"/js/sendData.js",
+				"htmlv1":"/js/htmlv1.js"
 			}
 		}
 		
@@ -118,6 +136,51 @@ public class DisplayController {
 		<body>test
 		<get-display></get-display>
 
+		
+		</body>
+		</html>
+
+		
+				""";
+	}
+
+
+
+	@GetMapping("/listDisplays")
+	public String listDisplays(@RequestParam String workflowId){
+		
+		var dataAtrs=client.getAllDataAttributes(TestWorkflow.class, workflowId);
+		var listOfDisplaysAhrefs=new ArrayList<String>();
+		for(var attr:dataAtrs.entrySet()){
+			
+			if(attr.getKey().startsWith(TestWorkflow.DISP_PER_PREFIX)){
+
+				var displayId=attr.getKey().substring(TestWorkflow.DISP_PER_PREFIX.length()+1);
+				listOfDisplaysAhrefs.add(STR."""
+				<a href="/display/test2?workflowId=\{workflowId}&displayId=\{displayId}" target="_blank">\{displayId}</a>
+				"""
+						
+				);
+			}
+		
+		}
+		
+		return STR."""
+				<!doctype html>
+		<html>
+		<head>
+		
+
+
+
+		
+		
+
+		</script>
+		</head>
+		<body>test
+		
+		\{String.join("<br>",listOfDisplaysAhrefs)}
 		
 		</body>
 		</html>

@@ -13,11 +13,21 @@ plugins {
 
 apply plugin: 'io.spring.dependency-management'
 
+compileJava{
+	options.compilerArgs+=['--enable-preview']
+}
+bootRun{
+	jvmArgs '--enable-preview'
+}
 
+test {
+    jvmArgs '--enable-preview'
+}
 
 group = 'ekrebs'
 // version = '0.0.1-SNAPSHOT'
  sourceCompatibility = '22'
+ targetCompatibility='22'
 
 repositories {
 	mavenCentral()

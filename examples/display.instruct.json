@@ -1,23 +1,6 @@
 {
 	"instructions": [
 		{
-			"type": "copy",
-			"arg": {
-				"type": "directVal",
-				"value": {
-					"hello": "world"
-				}
-			},
-			"res": {
-				"type": "varAccess",
-				"name": "test",
-				"path": {
-					"type": "directVal",
-					"value": []
-				}
-			}
-		},
-		{
 			"type": "mkdisp",
 			"res": {
 				"type": "varAccess",
@@ -29,10 +12,14 @@
 			}
 		},
 		{
+			"type": "label",
+			"label": "begin"
+		},
+		{
 			"type": "mkpromise",
 			"res": {
 				"type": "varAccess",
-				"name": "promise",
+				"name": "input1",
 				"path": {
 					"type": "directVal",
 					"value": []
@@ -41,18 +28,6 @@
 		},
 		{
 			"type": "updisp",
-			"dispArg": {
-				"type": "directVal",
-				"value": {
-					"type": "customElement",
-					"elementName": "show-var",
-					"module": "/js/counter.js",
-					"attributes": {
-						"test": "test"
-					},
-					"properties": {}
-				}
-			},
 			"dispIdArg": {
 				"type": "varAccess",
 				"name": "disp",
@@ -63,10 +38,33 @@
 			},
 			"inputPromiseArg": {
 				"type": "varAccess",
-				"name": "promise",
+				"name": "input1",
 				"path": {
 					"type": "directVal",
 					"value": []
+				}
+			},
+			"dispArg": {
+				"type": "directVal",
+				"value": {
+					"type": "customElement",
+					"elementName": "choice-options",
+					"module": "/js/choices.js",
+					"attributes": {
+						"data-describe": "Choose a or b"
+					},
+					"properties": {
+						"choices": [
+							{
+								"value": "a",
+								"humanText": "A"
+							},
+							{
+								"value": "b",
+								"humanText": "B"
+							}
+						]
+					}
 				}
 			}
 		},
@@ -74,7 +72,7 @@
 			"type": "await",
 			"arg": {
 				"type": "varAccess",
-				"name": "promise",
+				"name": "input1",
 				"path": {
 					"type": "directVal",
 					"value": []
@@ -82,7 +80,7 @@
 			},
 			"res": {
 				"type": "varAccess",
-				"name": "promiseval",
+				"name": "input1Res",
 				"path": {
 					"type": "directVal",
 					"value": []
@@ -90,15 +88,190 @@
 			}
 		},
 		{
-			"type": "print",
-			"arg": {
+			"type": "eq",
+			"arg1": {
 				"type": "directVal",
-				"value": {
-					"hello": "world"
+				"value": "a"
+			},
+			"arg2": {
+				"type": "varAccess",
+				"name": "input1Res",
+				"path": {
+					"type": "directVal",
+					"value": [
+						"choice"
+					]
+				}
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "didChooseA",
+				"path": {
+					"type": "directVal",
+					"value": []
 				}
 			}
 		},
 		{
+			"type": "branch",
+			"label": "finish",
+			"arg": {
+				"type": "varAccess",
+				"name": "didChooseA",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "mkpromise",
+			"res": {
+				"type": "varAccess",
+				"name": "aknowledgeWrong",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},{
+			"type": "updisp",
+			"dispIdArg": {
+				"type": "varAccess",
+				"name": "disp",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"inputPromiseArg": {
+				"type": "varAccess",
+				"name": "aknowledgeWrong",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"dispArg": {
+				"type": "directVal",
+				"value": {
+					"type": "customElement",
+					"elementName": "choice-options",
+					"module": "/js/choices.js",
+					"attributes": {
+						"data-describe": "Your Answer was wrong"
+					},
+					"properties": {
+						"choices": [
+							{
+								"value": "repeat",
+								"humanText": "Repeat"
+							}
+						]
+					}
+				}
+			}
+		},
+		{
+			"type": "await",
+			"arg": {
+				"type": "varAccess",
+				"name": "aknowledgeWrong",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "_",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "branch",
+			"label": "begin",
+			"arg": {
+				"type": "directVal",
+				"value": true
+			}
+		},
+		
+		{
+			"type": "label",
+			"label": "finish"
+		},
+		{
+			"type": "mkpromise",
+			"res": {
+				"type": "varAccess",
+				"name": "aknowledgeFinish",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "updisp",
+			"dispIdArg": {
+				"type": "varAccess",
+				"name": "disp",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"inputPromiseArg": {
+				"type": "varAccess",
+				"name": "aknowledgeFinish",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"dispArg": {
+				"type": "directVal",
+				"value": {
+					"type": "customElement",
+					"elementName": "choice-options",
+					"module": "/js/choices.js",
+					"attributes": {
+						"data-describe": "You are done"
+					},
+					"properties": {
+						"choices": [
+							{
+								"value": "finish",
+								"humanText": "Finish"
+							}
+						
+						]
+					}
+				}
+			}
+		},{
+			"type": "await",
+			"arg": {
+				"type": "varAccess",
+				"name": "aknowledgeFinish",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "_",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},{
 			"type": "exit"
 		}
 	]

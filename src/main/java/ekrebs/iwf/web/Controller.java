@@ -105,10 +105,13 @@ public class Controller {
 
 		if(parse.errors().size()==0){
 			client.startWorkflow(TestWorkflow.class, uuid, 0,parse);
+			m.put("uuid",uuid);
 		}
 		
+			
+		
 
-		m.put("uuid",uuid);
+		
 		return m;
 
 

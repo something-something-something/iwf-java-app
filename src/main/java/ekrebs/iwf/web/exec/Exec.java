@@ -43,6 +43,12 @@ public class Exec {
 			@Type(value = Instruction.UpdateDisplay.class, name = "updisp"),
 			@Type(value = Instruction.Add.class, name = "add"),
 			@Type(value = Instruction.Minus.class, name = "minus"),
+		
+			@Type(value = Instruction.Eq.class, name = "eq"),
+			@Type(value = Instruction.Gt.class, name = "gt"),
+			@Type(value = Instruction.Lt.class, name = "lt"),
+			@Type(value = Instruction.Or.class, name = "or"),
+			@Type(value = Instruction.And.class, name = "and"),
 	})
 	public sealed interface Instruction {
 		<T> T accept(InstructionVisitor<T> visitor);

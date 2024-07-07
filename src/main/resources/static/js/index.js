@@ -25,6 +25,8 @@ customElements.define('start-form', class StartForm extends HTMLElement {
 		<textarea name="instructions"></textarea>
 		<input type="submit">
 		</form>
+		<div class="goTo"></div>
+		<pre></pre>
 		`
 
 
@@ -46,8 +48,20 @@ customElements.define('start-form', class StartForm extends HTMLElement {
 		 * @type {import('./type.ts').JSON}
 		 */
 		const json = await res.json();
-		const pre = document.createElement('pre');
-		pre.innerText = JSON.stringify(json, null, '\t')
-		this.shadowRoot?.append(pre)
+		const pre = this.shadowRoot?.querySelector('pre');
+		const goto=this.shadowRoot?.querySelector('.goTo');
+		if (pre !== null&&pre!==undefined&&goto!==undefined&&goto!==null) {
+			
+			let str=JSON.stringify(json, null, '\t')
+			if(typeof json==='object' &&json!==null&&'uuid' in json){
+				goto.innerHTML=`<a href="/display/listDisplays?workflowId=${json.uuid}" target="_blank">${json.uuid}</a>`;
+			}
+			else{
+				goto.innerHTML=''
+			}
+			pre.innerText = str
+		}
+
+
 	}
 });

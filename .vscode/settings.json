@@ -8,5 +8,7 @@
 	"json.validate.enable": true,
 	"java.inlayHints.parameterNames.enabled": "all",
 	"java.signatureHelp.enabled": true,
-	"java.signatureHelp.description.enabled": true
+	"java.signatureHelp.description.enabled": true,
+	"java.configuration.updateBuildConfiguration": "interactive",
+	"java.compile.nullAnalysis.mode": "automatic",
 }

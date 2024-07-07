@@ -6,10 +6,13 @@
 			"$anchor": "Value",
 			"properties": {
 				"type": {
+					"description": "either directVal or varAccess. Direct value is for a json vale directly given var access fetches the value from a variable.",
 					"type": "string"
 				}
 			},
-			"required":["type"],
+			"required": [
+				"type"
+			],
 			"oneOf": [
 				{
 					"$ref": "#DirectValue"
@@ -21,11 +24,19 @@
 		},
 		"directValue": {
 			"$anchor": "DirectValue",
+			"description": "Use this to pass in json",
+			"examples": [
+				{
+					"type": "directVal",
+					"value": {}
+				}
+			],
 			"properties": {
 				"type": {
 					"const": "directVal"
 				},
 				"value": {
+					"description": "The json to use as the value",
 					"type": [
 						"string",
 						"number",
@@ -44,6 +55,17 @@
 		},
 		"variableAccess": {
 			"$anchor": "VariableAccess",
+			"description": "A refrence to a variable",
+			"examples": [
+				{
+					"type": "varAccess",
+					"name": "$1",
+					"path": {
+						"type": "directVal",
+						"value": []
+					}
+				}
+			],
 			"properties": {
 				"type": {
 					"const": "varAccess"
@@ -52,7 +74,7 @@
 					"type": "string"
 				},
 				"path": {
-						"$ref": "#Value"
+					"$ref": "#Value"
 				}
 			},
 			"required": [
@@ -62,6 +84,188 @@
 			]
 		},
 		"instruction": {
+			"defaultSnippets": [
+				{
+					"label": "copy",
+					"body": {
+						"type": "copy",
+						"arg": {
+							"type": "directVal",
+							"value": {}
+						},
+						"res": {
+							"type": "varAccess",
+							"name": "$1",
+							"path": {
+								"type": "directVal",
+								"value": []
+							}
+						}
+					}
+				},
+				{
+					"label": "exit",
+					"body": {
+						"type": "exit"
+					}
+				},
+				{
+					"label": "label",
+					"body": {
+						"type": "label",
+						"label": "$1"
+					}
+				},
+				{
+					"label": "branch-always",
+					"body": {
+						"type": "branch",
+						"label": "$1",
+						"arg": {
+							"type": "directVal",
+							"value": true
+						}
+					}
+				},
+				
+				{
+					"label": "branch",
+					"body": {
+						"type": "branch",
+						"label": "$1",
+						"arg": {
+							"type": "varAccess",
+							"name": "$2",
+							"path": {
+								"type": "directVal",
+								"value": []
+							}
+						}
+					}
+				},
+				{
+					"label": "mkpromise",
+					"body": {
+						"type": "mkpromise",
+						"res": {
+							"type": "varAccess",
+							"name": "$1",
+							"path": {
+								"type": "directVal",
+								"value": []
+							}
+						}
+					}
+				},
+				{
+					"label": "await",
+					"body": {
+						"type": "await",
+						"arg": {
+							"type": "varAccess",
+							"name": "$1",
+							"path": {
+								"type": "directVal",
+								"value": []
+							}
+						},
+						"res": {
+							"type": "varAccess",
+							"name": "$2",
+							"path": {
+								"type": "directVal",
+								"value": []
+							}
+						}
+					}
+				},
+				{
+					"label": "equals",
+					"body": {
+						"type": "eq",
+						"arg1": {
+							"type": "directVal",
+							"value": {}
+						},
+						"arg2": {
+							"type": "varAccess",
+							"name": "$1",
+							"path": {
+								"type": "directVal",
+								"value": []
+							}
+						},
+						"res": {
+							"type": "varAccess",
+							"name": "$2",
+							"path": {
+								"type": "directVal",
+								"value": []
+							}
+						}
+					}
+				},
+				{
+					"label": "make display",
+					"body": {
+						"type": "mkdisp",
+						"res": {
+							"type": "varAccess",
+							"name": "$1",
+							"path": {
+								"type": "directVal",
+								"value": []
+							}
+						}
+					}
+				},
+				{
+					"label":"update display",
+					"body":{
+						"type": "updisp",
+
+						"dispIdArg": {
+							"type": "varAccess",
+							"name": "$1",
+							"path": {
+								"type": "directVal",
+								"value": []
+							}
+						},
+						"inputPromiseArg": {
+							"type": "varAccess",
+							"name": "$2",
+							"path": {
+								"type": "directVal",
+								"value": []
+							}
+						},
+						"dispArg": {
+							"type": "directVal",
+							"value": {
+								"type": "customElement",
+								"elementName": "${3:choice-options}",
+								"module": "${4:/js/choices.js}",
+								"attributes": {
+									"data-describe": "Choose a or b"
+								},
+								"properties": {
+									"choices": [
+										{
+											"value": "a",
+											"humanText": "A"
+										},
+										{
+											"value": "b",
+											"humanText": "B"
+										}
+									]
+								}
+							}
+						}
+					}
+				}
+			],
 			"$anchor": "Instruction",
 			"type": "object",
 			"properties": {
@@ -73,6 +277,7 @@
 			"oneOf": [
 				{
 					"type": "object",
+					"description": "Set a variable to the given value",
 					"properties": {
 						"type": {
 							"const": "copy"
@@ -92,6 +297,7 @@
 				},
 				{
 					"type": "object",
+					"description": "Create a display. A display is a webpage",
 					"properties": {
 						"type": {
 							"const": "mkdisp"
@@ -107,27 +313,54 @@
 				},
 				{
 					"type": "object",
+					"description": "Change the ui of a webpage",
 					"properties": {
 						"type": {
 							"const": "updisp"
 						},
 						"inputPromiseArg": {
+							"description": "Promise where the user input will go",
 							"$ref": "#Value"
 						},
 						"dispIdArg": {
+							"description": "Which display to update",
 							"$ref": "#Value"
 						},
 						"dispArg": {
+							"description": "A description of the ui",
+							"examples": [
+								{
+									"type": "directVal",
+									"value": {
+										"type": "customElement",
+										"elementName": "choice-options",
+										"module": "/js/choices.js",
+										"attributes": {
+											"data-describe": "Choose a or b"
+										},
+										"properties": {
+											"choices": [
+												{
+													"value": "a",
+													"humanText": "A"
+												},
+												{
+													"value": "b",
+													"humanText": "B"
+												}
+											]
+										}
+									}
+								}
+							],
 							"$ref": "#Value"
 						}
-						
 					},
 					"required": [
 						"type",
 						"inputPromiseArg",
 						"dispArg",
 						"dispIdArg"
-
 					]
 				},
 				{
@@ -278,12 +511,14 @@
 						"arg": {
 							"$ref": "#Value"
 						},
-						"label":{
-							"type":"string"
+						"label": {
+							"type": "string"
 						}
 					},
 					"required": [
-						"type","arg","label"
+						"type",
+						"arg",
+						"label"
 					]
 				},
 				{
@@ -292,12 +527,13 @@
 						"type": {
 							"const": "label"
 						},
-						"label":{
-							"type":"string"
+						"label": {
+							"type": "string"
 						}
 					},
 					"required": [
-						"type","label"
+						"type",
+						"label"
 					]
 				},
 				{
@@ -307,14 +543,10 @@
 							"const": "add"
 						},
 						"arg1": {
-							
-								"$ref": "#Value"
-							
+							"$ref": "#Value"
 						},
 						"arg2": {
-							
-								"$ref": "#Value"
-							
+							"$ref": "#Value"
 						},
 						"res": {
 							"$ref": "#VariableAccess"
@@ -334,14 +566,10 @@
 							"const": "minus"
 						},
 						"arg1": {
-							
-								"$ref": "#Value"
-							
+							"$ref": "#Value"
 						},
 						"arg2": {
-							
-								"$ref": "#Value"
-							
+							"$ref": "#Value"
 						},
 						"res": {
 							"$ref": "#VariableAccess"
@@ -361,14 +589,10 @@
 							"const": "eq"
 						},
 						"arg1": {
-							
-								"$ref": "#Value"
-							
+							"$ref": "#Value"
 						},
 						"arg2": {
-							
-								"$ref": "#Value"
-							
+							"$ref": "#Value"
 						},
 						"res": {
 							"$ref": "#VariableAccess"
@@ -388,14 +612,10 @@
 							"const": "gt"
 						},
 						"arg1": {
-							
-								"$ref": "#Value"
-							
+							"$ref": "#Value"
 						},
 						"arg2": {
-							
-								"$ref": "#Value"
-							
+							"$ref": "#Value"
 						},
 						"res": {
 							"$ref": "#VariableAccess"
@@ -415,14 +635,10 @@
 							"const": "lt"
 						},
 						"arg1": {
-							
-								"$ref": "#Value"
-							
+							"$ref": "#Value"
 						},
 						"arg2": {
-							
-								"$ref": "#Value"
-							
+							"$ref": "#Value"
 						},
 						"res": {
 							"$ref": "#VariableAccess"
@@ -442,14 +658,10 @@
 							"const": "and"
 						},
 						"arg1": {
-							
-								"$ref": "#Value"
-							
+							"$ref": "#Value"
 						},
 						"arg2": {
-							
-								"$ref": "#Value"
-							
+							"$ref": "#Value"
 						},
 						"res": {
 							"$ref": "#VariableAccess"
@@ -469,14 +681,10 @@
 							"const": "or"
 						},
 						"arg1": {
-							
-								"$ref": "#Value"
-							
+							"$ref": "#Value"
 						},
 						"arg2": {
-							
-								"$ref": "#Value"
-							
+							"$ref": "#Value"
 						},
 						"res": {
 							"$ref": "#VariableAccess"

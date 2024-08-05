@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,12 +44,15 @@ public class Exec {
 			@Type(value = Instruction.UpdateDisplay.class, name = "updisp"),
 			@Type(value = Instruction.Add.class, name = "add"),
 			@Type(value = Instruction.Minus.class, name = "minus"),
-		
+
 			@Type(value = Instruction.Eq.class, name = "eq"),
 			@Type(value = Instruction.Gt.class, name = "gt"),
 			@Type(value = Instruction.Lt.class, name = "lt"),
 			@Type(value = Instruction.Or.class, name = "or"),
 			@Type(value = Instruction.And.class, name = "and"),
+			@Type(value = Instruction.Parallel.class, name = "parallel"),
+			@Type(value = Instruction.DeadEnd.class, name = "deadend"),
+			@Type(value = Instruction.ResPromise.class, name = "respromise"),
 	})
 	public sealed interface Instruction {
 		<T> T accept(InstructionVisitor<T> visitor);
@@ -117,7 +121,7 @@ public class Exec {
 			}
 		}
 
-		record UpdateDisplay(Data inputPromiseArg, Data dispArg,Data dispIdArg) implements Instruction {
+		record UpdateDisplay(Data inputPromiseArg, Data dispArg, Data dispIdArg) implements Instruction {
 
 			@Override
 			public <T> T accept(InstructionVisitor<T> v) {
@@ -180,6 +184,34 @@ public class Exec {
 				return v.vist(this);
 			}
 		}
+
+		record Parallel(String label,List<CopyItem> copy, List<RefItem> ref) implements Instruction {
+
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+			public record CopyItem(Data arg, String res) {
+			}
+
+			public record RefItem(String targetName, String refName) {
+			}
+		}
+
+		record DeadEnd() implements Instruction {
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+		}
+
+		record ResPromise(Data promiseIdArg, Data valueArg) implements Instruction {
+			@Override
+			public <T> T accept(InstructionVisitor<T> v) {
+				return v.vist(this);
+			}
+		}
+
 	}
 
 	interface InstructionVisitor<T> {
@@ -215,6 +247,12 @@ public class Exec {
 		T vist(Instruction.And inst);
 
 		T vist(Instruction.Or inst);
+
+		T vist(Instruction.Parallel inst);
+
+		T vist(Instruction.DeadEnd inst);
+
+		T vist(Instruction.ResPromise inst);
 
 	}
 
@@ -331,8 +369,7 @@ public class Exec {
 				instruction = new Instruction.MakeDisplay(resResult.value());
 			}
 
-		}
-		else if (type.equals("mkpromise")) {
+		} else if (type.equals("mkpromise")) {
 
 			var res = instNode.path("res");
 			var resResult = parseVarAccess((ObjectNode) res, List.of(index));
@@ -362,11 +399,11 @@ public class Exec {
 			if (errs.size() > 0) {
 				instruction = new Instruction.Exit();
 			} else {
-				instruction = new Instruction.UpdateDisplay(inputPromiseResult.value(),dispArgResult.value(),dispIdArgResult.value());
+				instruction = new Instruction.UpdateDisplay(inputPromiseResult.value(), dispArgResult.value(),
+						dispIdArgResult.value());
 			}
 
-		}
-		else if (type.equals("await")) {
+		} else if (type.equals("await")) {
 
 			var argres = parseValue(instNode.path("arg"), List.of(index));
 			errs.addAll(argres.errors());
@@ -375,7 +412,7 @@ public class Exec {
 			errs.addAll(resres.errors());
 
 			instruction = new Instruction.AwaitPromise(argres.value, resres.value);
-		} 
+		}
 
 		else if (type.equals("add")) {
 
@@ -388,8 +425,8 @@ public class Exec {
 			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
 			errs.addAll(resres.errors());
 
-			instruction = new Instruction.Add(argres1.value, argres2.value,resres.value);
-		} 
+			instruction = new Instruction.Add(argres1.value, argres2.value, resres.value);
+		}
 
 		else if (type.equals("minus")) {
 
@@ -402,8 +439,8 @@ public class Exec {
 			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
 			errs.addAll(resres.errors());
 
-			instruction = new Instruction.Minus(argres1.value, argres2.value,resres.value);
-		} 
+			instruction = new Instruction.Minus(argres1.value, argres2.value, resres.value);
+		}
 
 		else if (type.equals("eq")) {
 
@@ -416,8 +453,8 @@ public class Exec {
 			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
 			errs.addAll(resres.errors());
 
-			instruction = new Instruction.Eq(argres1.value, argres2.value,resres.value);
-		} 
+			instruction = new Instruction.Eq(argres1.value, argres2.value, resres.value);
+		}
 
 		else if (type.equals("gt")) {
 
@@ -430,8 +467,8 @@ public class Exec {
 			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
 			errs.addAll(resres.errors());
 
-			instruction = new Instruction.Gt(argres1.value, argres2.value,resres.value);
-		} 
+			instruction = new Instruction.Gt(argres1.value, argres2.value, resres.value);
+		}
 
 		else if (type.equals("lt")) {
 
@@ -444,9 +481,8 @@ public class Exec {
 			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
 			errs.addAll(resres.errors());
 
-			instruction = new Instruction.Lt(argres1.value, argres2.value,resres.value);
-		} 
-		else if (type.equals("and")) {
+			instruction = new Instruction.Lt(argres1.value, argres2.value, resres.value);
+		} else if (type.equals("and")) {
 
 			var argres1 = parseValue(instNode.path("arg1"), List.of(index));
 			errs.addAll(argres1.errors());
@@ -457,9 +493,8 @@ public class Exec {
 			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
 			errs.addAll(resres.errors());
 
-			instruction = new Instruction.And(argres1.value, argres2.value,resres.value);
-		} 
-		else if (type.equals("or")) {
+			instruction = new Instruction.And(argres1.value, argres2.value, resres.value);
+		} else if (type.equals("or")) {
 
 			var argres1 = parseValue(instNode.path("arg1"), List.of(index));
 			errs.addAll(argres1.errors());
@@ -470,10 +505,69 @@ public class Exec {
 			var resres = parseVarAccess((ObjectNode) instNode.path("res"), List.of(index));
 			errs.addAll(resres.errors());
 
-			instruction = new Instruction.Or(argres1.value, argres2.value,resres.value);
-		} 
+			instruction = new Instruction.Or(argres1.value, argres2.value, resres.value);
+		}
+
+		else if (type.equals("deadend")) {
+			instruction = new Instruction.DeadEnd();
+		}
+
+		else if (type.equals("parallel")) {
+
+			var label = "";
+			if (instNode.path("label").isTextual()) {
+				label = instNode.path("label").asText();
+			} else {
+				errs.add(new ParseError(List.of(index), "label Missing"));
+			}
+			var copyList = new ArrayList<Instruction.Parallel.CopyItem>();
+			if (instNode.path("copy").isArray()) {
+				var copyNode = (ArrayNode) instNode.path("copy");
+
+			
+				for (var c = 0; c < copyNode.size(); c++) {
+					var argValue = parseValue(copyNode.path(c).path("arg"), List.of(index, "copy", c));
+					errs.addAll(argValue.errors());
+
+					if (copyNode.path(c).path("res").isTextual()) {
+
+						var resValue = copyNode.path(c).path("res").asText();
 
 
+						copyList.add(new Instruction.Parallel.CopyItem(argValue.value, resValue));
+					} else {
+						errs.add(new ParseError(List.of(index, c), "Bad Res must be string"));
+					}
+				}
+			}
+			var refList = new ArrayList<Instruction.Parallel.RefItem>();
+			if (instNode.path("ref").isArray()) {
+				var refNode = (ArrayNode) instNode.path("ref");
+				for(var r = 0; r< refNode.size(); r++){
+					var targetName="";
+					var refName="";
+					if(refNode.path(r).path("targetName").isTextual()){
+						targetName=refNode.path(r).path("targetName").asText();
+					}
+					if(refNode.path(r).path("refName").isTextual()){
+						refName=refNode.path(r).path("refName").asText();
+					}
+					refList.add(new Instruction.Parallel.RefItem(targetName, refName));
+				}
+			}
+
+			instruction = new Instruction.Parallel(label,copyList,refList);
+		}
+		else if (type.equals("respromise")) {
+
+			var promiseIdArg = parseValue(instNode.path("promiseIdArg"), List.of(index));
+			errs.addAll(promiseIdArg.errors());
+			var valueArg = parseValue(instNode.path("valueArg"), List.of(index));
+			errs.addAll(valueArg.errors());
+
+			
+			instruction = new Instruction.ResPromise(promiseIdArg.value, valueArg.value);
+		}
 		else {
 			errs.add(new ParseError(iep(index, "type"), "notRecognized type " + type));
 			instruction = new Instruction.Exit();

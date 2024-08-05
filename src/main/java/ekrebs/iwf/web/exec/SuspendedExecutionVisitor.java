@@ -19,6 +19,9 @@ import ekrebs.iwf.web.exec.Exec.Instruction.Minus;
 import ekrebs.iwf.web.exec.Exec.Instruction.Or;
 import ekrebs.iwf.web.exec.Exec.Instruction.Print;
 import ekrebs.iwf.web.exec.Exec.Instruction.UpdateDisplay;
+import ekrebs.iwf.web.exec.Exec.Instruction.Parallel;
+import ekrebs.iwf.web.exec.Exec.Instruction.DeadEnd;
+import ekrebs.iwf.web.exec.Exec.Instruction.ResPromise;
 import ekrebs.iwf.web.workflows.TestWorkflow.InternalCommsPromise;
 import io.iworkflow.core.command.CommandRequest;
 import io.iworkflow.core.communication.InternalChannelCommand;
@@ -109,4 +112,19 @@ public class SuspendedExecutionVisitor implements Exec.InstructionVisitor<Comman
 	public CommandRequest vist(Or inst) {
 		return defaulCommandRequest();
 	}
+
+	@Override
+	public CommandRequest vist(DeadEnd inst) {
+		return defaulCommandRequest();
+	}
+	@Override
+	public CommandRequest vist(Parallel inst) {
+		return defaulCommandRequest();
+	}
+
+	@Override
+	public CommandRequest vist(ResPromise inst) {
+		return defaulCommandRequest();
+	}
+
 }

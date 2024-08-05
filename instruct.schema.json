@@ -127,7 +127,6 @@
 						}
 					}
 				},
-				
 				{
 					"label": "branch",
 					"body": {
@@ -220,10 +219,9 @@
 					}
 				},
 				{
-					"label":"update display",
-					"body":{
+					"label": "update display",
+					"body": {
 						"type": "updisp",
-
 						"dispIdArg": {
 							"type": "varAccess",
 							"name": "$1",
@@ -264,7 +262,64 @@
 							}
 						}
 					}
+				},
+				{
+					"label":"deadend",
+					"body":{"type": "deadend"}
+				},
+				{
+					"label":"write promise",
+					"body":{
+						"type": "respromise",
+						"promiseIdArg": {
+							"type": "varAccess",
+							"name": "$1",
+							"path": {
+								"type": "directVal",
+								"value": []
+							}
+						},
+						"valueArg": {
+							"type": "varAccess",
+							"name": "$2",
+							"path": {
+								"type": "directVal",
+								"value": []
+							}
+						}
+					}
+				},
+				{
+					"label":"parallel / new thread /",
+					"body":{
+						"type": "parallel",
+						"label": "$1",
+						"copy": [
+							{
+								"arg": {
+									"type": "varAccess",
+									"name": "$2",
+									"path": {
+										"type": "directVal",
+										"value": []
+									}
+								},
+								"res":  "$3"
+									
+							},
+							{
+								"arg": {
+									"type": "directVal",
+									"value": ""
+								},
+								"res": "$4"
+								
+							}
+						],
+						"ref": []
+					}
 				}
+
 			],
 			"$anchor": "Instruction",
 			"type": "object",
@@ -398,6 +453,26 @@
 					]
 				},
 				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "respromise"
+						},
+						"promiseIdArg": {
+							"$ref": "#Value"
+						},
+						"valueArg": {
+							"$ref": "#Value"
+						}
+					},
+					"required": [
+						"type",
+						"promiseIdArg",
+						"valueArg"
+					]
+				},
+				{
+					"description": "not implimented",
 					"type": "object",
 					"properties": {
 						"type": {
@@ -695,6 +770,67 @@
 						"arg1",
 						"arg2",
 						"res"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "deadend"
+						}
+					}
+				},
+				{
+					"type": "object",
+					"properties": {
+						"type": {
+							"const": "parallel"
+						},
+						"label": {
+							"type": "string"
+						},
+						"copy": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"arg": {
+										"$ref": "#Value"
+									},
+									"res": {
+										"type": "string"
+									}
+								},
+								"required": [
+									"arg",
+									"res"
+								]
+							}
+						},
+						"ref": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"required": [
+									"targetName",
+									"refName"
+								],
+								"properties": {
+									"targetName": {
+										"type": "string"
+									},
+									"refName": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					},
+					"required": [
+						"type",
+						"copy",
+						"ref",
+						"label"
 					]
 				}
 			]

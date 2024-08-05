@@ -1,0 +1,493 @@
+{
+	"instructions": [
+		{
+			"type": "branch",
+			"label": "mainprogram",
+			"arg": {
+				"type": "directVal",
+				"value": true
+			}
+		},
+		{
+			"type": "label",
+			"label": "fibinochi"
+		},
+		{
+			"type": "lt",
+			"arg1": {
+				"type": "varAccess",
+				"name": "num",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"arg2": {
+				"type": "directVal",
+				"value": 3
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "numlessthanthree",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "branch",
+			"label": "whennumislessthanthree",
+			"arg": {
+				"type": "varAccess",
+				"name": "numlessthanthree",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "mkpromise",
+			"res": {
+				"type": "varAccess",
+				"name": "fibminusoneresult",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "mkpromise",
+			"res": {
+				"type": "varAccess",
+				"name": "fibminustworesult",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "minus",
+			"arg1": {
+				"type": "varAccess",
+				"name": "num",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"arg2": {
+				"type": "directVal",
+				"value": 1
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "numminusone",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "minus",
+			"arg1": {
+				"type": "varAccess",
+				"name": "num",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"arg2": {
+				"type": "directVal",
+				"value": 2
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "numminustwo",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "parallel",
+			"label": "fibinochi",
+			"copy": [
+				{
+					"arg": {
+						"type": "varAccess",
+						"name": "fibminusoneresult",
+						"path": {
+							"type": "directVal",
+							"value": []
+						}
+					},
+					"res": "return"
+				},
+				{
+					"arg": {
+						"type": "varAccess",
+						"name": "numminusone",
+						"path": {
+							"type": "directVal",
+							"value": []
+						}
+					},
+					"res": "num"
+				}
+			],
+			"ref": []
+		},
+
+		{
+			"type": "await",
+			"arg": {
+				"type": "varAccess",
+				"name": "fibminusoneresult",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "fibprev",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "varAccess",
+				"name": "fibprev",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+
+
+		{
+			"type": "parallel",
+			"label": "fibinochi",
+			"copy": [
+				{
+					"arg": {
+						"type": "varAccess",
+						"name": "fibminustworesult",
+						"path": {
+							"type": "directVal",
+							"value": []
+						}
+					},
+					"res": "return"
+				},
+				{
+					"arg": {
+						"type": "varAccess",
+						"name": "numminustwo",
+						"path": {
+							"type": "directVal",
+							"value": []
+						}
+					},
+					"res": "num"
+				}
+			],
+			"ref": []
+		},
+		
+		{
+			"type": "await",
+			"arg": {
+				"type": "varAccess",
+				"name": "fibminustworesult",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "fibprevprev",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "varAccess",
+				"name": "fibprevprev",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "add",
+			"arg1": {
+				"type": "varAccess",
+				"name": "fibprev",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"arg2": {
+				"type": "varAccess",
+				"name": "fibprevprev",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "thenumber",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "varAccess",
+				"name": "thenumber",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "respromise",
+			"promiseIdArg": {
+				"type": "varAccess",
+				"name": "return",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"valueArg": {
+				"type": "varAccess",
+				"name": "thenumber",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		
+		{
+			"type": "deadend"
+		},
+		{
+			"type": "label",
+			"label": "whennumislessthanthree"
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "directVal",
+				"value": "num is less than 3",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "varAccess",
+				"name": "num",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "eq",
+			"arg1": {
+				"type": "varAccess",
+				"name": "num",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"arg2": {
+				"type": "directVal",
+				"value": 2
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "numistwo",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "branch",
+			"label": "whennumistwo",
+			"arg": {
+				"type": "varAccess",
+				"name": "numistwo",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "respromise",
+			"promiseIdArg": {
+				"type": "varAccess",
+				"name": "return",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"valueArg": {
+				"type": "directVal",
+				"value": 0
+			}
+		},
+		{
+			"type": "deadend"
+		},
+		{
+			"type": "label",
+			"label": "whennumistwo"
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "directVal",
+				"value": "should return 1"
+				
+			}
+		},
+		{
+			"type": "respromise",
+			"promiseIdArg": {
+				"type": "varAccess",
+				"name": "return",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"valueArg": {
+				"type": "directVal",
+				"value": 1
+			}
+		},
+		
+		{
+			"type": "deadend"
+		},
+		{
+			"type": "label",
+			"label": "mainprogram"
+		},
+		{
+			"type": "mkpromise",
+			"res": {
+				"type": "varAccess",
+				"name": "thefibnumPromise",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "parallel",
+			"label": "fibinochi",
+			"copy": [
+				{
+					"arg": {
+						"type": "directVal",
+						"value": 4
+					},
+					"res": "num"
+				},
+				{
+					"arg": {
+						"type": "varAccess",
+						"name": "thefibnumPromise",
+						"path": {
+							"type": "directVal",
+							"value": []
+						}
+					},
+					"res": "return"
+				}
+			],
+			"ref": []
+		},
+		{
+			"type": "await",
+			"arg": {
+				"type": "varAccess",
+				"name": "thefibnumPromise",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "theresult",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "directVal",
+				"value": "The result"
+				
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "varAccess",
+				"name": "theresult",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "exit"
+		}
+	]
+}

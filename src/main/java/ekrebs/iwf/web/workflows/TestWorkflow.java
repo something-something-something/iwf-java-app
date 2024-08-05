@@ -25,10 +25,10 @@ import io.iworkflow.core.communication.Communication;
 import io.iworkflow.core.communication.CommunicationMethodDef;
 import io.iworkflow.core.communication.InternalChannelCommand;
 import io.iworkflow.core.communication.InternalChannelDef;
-import io.iworkflow.core.communication.SignalChannelDef;
 import io.iworkflow.core.persistence.DataAttributeDef;
 import io.iworkflow.core.persistence.Persistence;
 import io.iworkflow.core.persistence.PersistenceFieldDef;
+
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -268,8 +268,9 @@ public class TestWorkflow implements ObjectWorkflow {
 			var result = persistence.getDataAttribute(PersistenceSrc.sourceKey(input.src),
 					PersistenceSrc.class).instructions.get(input.instructNum).accept(visitor);
 
-			switch (result) {
-				case ExecutionResult.SimpleExecutionResult ser -> {
+			//switch (result) {
+				//case ExecutionResult.SimpleExecutionResult ser -> {
+				var ser=result;
 					if (ser.shouldExit()) {
 						return StateDecision.gracefulCompleteWorkflow();
 					}
@@ -278,12 +279,15 @@ public class TestWorkflow implements ObjectWorkflow {
 
 						switch (vch) {
 							case ExecVisitor.VariableChanges.Update u -> {
-								System.out.println(u.name());
+								//System.out.println(u.name());
 								persistence.setDataAttribute(
 										PersistenceVar.varKey(u.scopeKey(), u.name())
 
 										, new PersistenceVar.Value(u.value()));
 
+							}
+							case ExecVisitor.VariableChanges.Ref r->{
+								persistence.setDataAttribute(PersistenceVar.varKey(r.scopeKey(), r.name()), new PersistenceVar.Ref(r.targetname(),r.targetscopeKey()));
 							}
 							default -> {
 								System.out.println("not implimented yet");
@@ -292,6 +296,12 @@ public class TestWorkflow implements ObjectWorkflow {
 						}
 
 					}
+					for(var promiseWrite: ser.promiseWrites()){
+						communication.publishInternalChannel(InternalCommsPromise.getKey(promiseWrite.id()), new InternalCommsPromise(promiseWrite.value()));
+						//System.out.println(promiseWrite.value());
+
+					}
+
 					var nextStates = new ArrayList<StateMovement>();
 					var s = ser.states();
 					for (var z : s) {
@@ -301,11 +311,14 @@ public class TestWorkflow implements ObjectWorkflow {
 										z.sourceKey(), z.execPointer(), z.execEnv()));
 						nextStates.add(movment);
 					}
+					if(nextStates.size()==0){
+						return StateDecision.deadEnd();
+					}
 					return StateDecision.multiNextStates(nextStates);
 
-				}
+				//}
 
-			}
+			//}
 
 		}
 

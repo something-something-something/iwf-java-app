@@ -22,6 +22,9 @@ import ekrebs.iwf.web.exec.Exec.Instruction.Minus;
 import ekrebs.iwf.web.exec.Exec.Instruction.Or;
 import ekrebs.iwf.web.exec.Exec.Instruction.Print;
 import ekrebs.iwf.web.exec.Exec.Instruction.UpdateDisplay;
+import ekrebs.iwf.web.exec.Exec.Instruction.DeadEnd;
+import ekrebs.iwf.web.exec.Exec.Instruction.Parallel;
+import ekrebs.iwf.web.exec.Exec.Instruction.ResPromise;
 import ekrebs.iwf.web.exec.ExecVisitor.VariableChanges.Update;
 import ekrebs.iwf.web.workflows.TestWorkflow.PersistenceVar;
 import ekrebs.iwf.web.workflows.TestWorkflow.Display;
@@ -32,6 +35,8 @@ import io.iworkflow.core.communication.Communication;
 import io.iworkflow.core.persistence.Persistence;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.UUID;
 
 public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.ExecutionResult> {
 
@@ -60,25 +65,29 @@ public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.Executio
 		};
 	}
 
+	public record PromiseWrite(String id, JsonNode value){}
+
 	public sealed interface ExecutionResult {
 		List<State> states();
 
 		List<VariableChanges> variableChanges();
 
 		boolean shouldExit();
+		List<PromiseWrite> promiseWrites();
 
 		public final class SimpleExecutionResult implements ExecutionResult {
 			private final ExecutionContext executionContext;
 			private final List<VariableChanges> variableChanges;
 			private final List<State> states;
-
+			private List<PromiseWrite> promiseWrites;
 			final boolean shouldExit;
 
 			public SimpleExecutionResult(ExecutionContext executionContext, boolean shouldExit) {
 				this.executionContext = executionContext;
 				this.variableChanges = List.of();
 				this.shouldExit = shouldExit;
-				this.states = defaultNextState();
+				this.states = defaultNextState(executionContext);
+				this.promiseWrites=List.of();
 
 			}
 
@@ -87,7 +96,8 @@ public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.Executio
 				this.executionContext = executionContext;
 				this.variableChanges = variableChanges;
 				this.shouldExit = false;
-				this.states = defaultNextState();
+				this.states = defaultNextState(executionContext);
+				this.promiseWrites=List.of();
 
 			}
 
@@ -97,6 +107,16 @@ public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.Executio
 				this.variableChanges = variableChanges;
 				this.shouldExit = false;
 				this.states = states;
+				this.promiseWrites=List.of();
+
+			}
+			public SimpleExecutionResult(ExecutionContext executionContext, List<VariableChanges> variableChanges,
+					List<State> states,List<PromiseWrite> promiseWrites) {
+				this.executionContext = executionContext;
+				this.variableChanges = variableChanges;
+				this.shouldExit = false;
+				this.states = states;
+				this.promiseWrites=promiseWrites;
 
 			}
 
@@ -104,7 +124,8 @@ public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.Executio
 				this.executionContext = executionContext;
 				this.variableChanges = List.of();
 				this.shouldExit = false;
-				this.states = defaultNextState();
+				this.states = defaultNextState(executionContext);
+				this.promiseWrites=List.of();
 
 			}
 
@@ -113,7 +134,7 @@ public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.Executio
 				return this.states;
 			}
 
-			private List<State> defaultNextState() {
+			public static List<State> defaultNextState(ExecutionContext executionContext) {
 				return List.of(new State(executionContext.execPointer() + 1, executionContext.SourceKey(),
 						executionContext.execEnv()));
 			}
@@ -128,13 +149,18 @@ public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.Executio
 				return this.variableChanges;
 			}
 
+			@Override
+			public List<PromiseWrite> promiseWrites() {
+				return this.promiseWrites;
+			}
+
 		}
 	}
 
 	public record State(int execPointer, String sourceKey, String execEnv) {
 
 	};
-
+//
 	public static JsonNode getValue(Exec.Data value, Persistence persistence, String scopeKey) {
 		return switch (value) {
 			case Exec.Data.DirectValue dv -> {
@@ -332,8 +358,18 @@ public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.Executio
 				this.executionContext.execEnv);
 
 		var variableAccess = inst.res();
+		boolean result;
+		if(arg1.isNumber()&&arg2.isNumber()){
+			result=arg1.asDouble()==arg2.asDouble();
+		}
+		else{
+			 result = arg1.equals(arg2);
+		}
+		
 
-		var result = arg1.equals(arg2);
+
+
+
 		var variableChange = getVariableChange(executionContext.objectMapper.valueToTree(result), variableAccess,
 				executionContext);
 
@@ -408,4 +444,36 @@ public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.Executio
 		return new ExecutionResult.SimpleExecutionResult(executionContext, List.of(variableChange));
 	}
 
+	@Override
+	public ExecutionResult vist(DeadEnd inst) {
+		return new ExecutionResult.SimpleExecutionResult(executionContext,List.of(),List.of());
+	}
+	@Override
+	public ExecutionResult vist(Parallel inst) {
+		var altScope=UUID.randomUUID().toString();
+		var variableChanges=new ArrayList<VariableChanges>();
+		for(var copyItem:inst.copy()){
+			var valueToCopy=getValue(copyItem.arg(), this.executionContext.persistence,
+		this.executionContext.execEnv);
+			variableChanges.add(new VariableChanges.Update(copyItem.res(), altScope, valueToCopy));
+		}
+		for (var refItem:inst.ref()){
+			variableChanges.add(new VariableChanges.Ref(refItem.refName(), altScope, refItem.targetName(), executionContext.execEnv));
+		}
+		var states=new ArrayList<State>();
+		states.addAll(ExecutionResult.SimpleExecutionResult.defaultNextState(executionContext));
+		states.add(new State(executionContext.labeledBookmarks.get(inst.label()), executionContext.SourceKey, altScope));
+		return new ExecutionResult.SimpleExecutionResult(executionContext,variableChanges,states);
+
+	}
+	@Override
+	public ExecutionResult vist(ResPromise inst) {
+		var promiseId = getValue(inst.promiseIdArg(), this.executionContext.persistence,
+		this.executionContext.execEnv);
+
+		var value = getValue(inst.valueArg(), this.executionContext.persistence,
+		this.executionContext.execEnv);
+		return new ExecutionResult.SimpleExecutionResult(executionContext,List.of(),ExecutionResult.SimpleExecutionResult.defaultNextState(executionContext),List.of(new PromiseWrite(promiseId.asText(), value)));
+		
+	}
 }

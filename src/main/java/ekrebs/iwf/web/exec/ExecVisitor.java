@@ -218,7 +218,9 @@ public class ExecVisitor implements Exec.InstructionVisitor<ExecVisitor.Executio
 				executionContext.execEnv());
 		var newValue = Exec.replaceValueAtPath(fullValueOfOldVariable, argValue, pathToReplace,
 				executionContext.objectMapper());
-		var variableChange = new VariableChanges.Update(variableAccess.name(), executionContext.execEnv, newValue);
+
+		var persistenceOriginValueLocation=PersistenceVar.getPersistenceOriginValueLocation(executionContext.persistence, executionContext.execEnv, variableAccess.name());
+		var variableChange = new VariableChanges.Update(persistenceOriginValueLocation.name(), persistenceOriginValueLocation.execEnv(), newValue);
 		return variableChange;
 	}
 

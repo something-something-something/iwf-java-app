@@ -57,6 +57,28 @@ public class TestWorkflow implements ObjectWorkflow {
 
 		Value getVariable(Persistence persistence);
 
+		record PersistenceOriginValueLocation(String execEnv,String name){
+		}
+
+		public static PersistenceOriginValueLocation getPersistenceOriginValueLocation(Persistence persistence,String execEnv,String name){
+
+			var key=varKey(execEnv, name);
+			
+			var perVar=persistence.getDataAttribute(key,PersistenceVar.class);
+			if(perVar==null){
+				return new PersistenceOriginValueLocation(execEnv, name);
+			}
+
+			switch(perVar){
+				case Value v ->{
+					return new PersistenceOriginValueLocation(execEnv, name);
+				}
+				case Ref r->{
+					return getPersistenceOriginValueLocation(persistence, r.ExecEnv,r.name);
+				}
+			}
+		}
+
 		record Value(JsonNode value) implements PersistenceVar {
 
 			@Override

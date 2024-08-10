@@ -1,0 +1,212 @@
+{
+	"instructions": [
+		{
+			"type": "branch",
+			"label": "mainprogram",
+			"arg": {
+				"type": "directVal",
+				"value": true
+			}
+		},
+		{
+			"type": "label",
+			"label": "refTest"
+		},
+		{
+			"type": "copy",
+			"arg": {
+				"type": "directVal",
+				"value": "setbyRefTest1"
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "shouldChange",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "copy",
+			"arg": {
+				"type": "directVal",
+				"value": "setbyRefTest2"
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "shouldNotChange",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "mkpromise",
+			"res": {
+				"type": "varAccess",
+				"name": "done",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "respromise",
+			"promiseIdArg": {
+				"type": "varAccess",
+				"name": "return",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"valueArg": {
+				"type": "directVal",
+				"value": 0
+			}
+		},
+		{
+			"type": "deadend"
+		},
+		{
+			"type": "label",
+			"label": "mainprogram"
+		},
+		{
+			"type": "copy",
+			"arg": {
+				"type": "directVal",
+				"value": "initval"
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "shouldChange",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "copy",
+			"arg": {
+				"type": "directVal",
+				"value": "staysame"
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "shouldNotChange",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "mkpromise",
+			"res": {
+				"type": "varAccess",
+				"name": "parallelend",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "parallel",
+			"label": "refTest",
+			"copy": [
+				{
+					"arg": {
+						"type": "varAccess",
+						"name": "shouldNotChange",
+						"path": {
+							"type": "directVal",
+							"value": []
+						}
+					},
+					"res": "shouldNotChange"
+				},
+				{
+					"arg": {
+						"type": "varAccess",
+						"name": "parallelend",
+						"path": {
+							"type": "directVal",
+							"value": []
+						}
+					},
+					"res": "return"
+				}
+			],
+			"ref": [
+				{
+					"targetName": "shouldChange",
+					"refName": "shouldChange"
+				}
+			]
+		},
+		{
+			"type": "await",
+			"arg": {
+				"type": "varAccess",
+				"name": "parallelend",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			},
+			"res": {
+				"type": "varAccess",
+				"name": "_",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "directVal",
+				"value": "ShouldNotChange"
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "varAccess",
+				"name": "shouldNotChange",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "directVal",
+				"value": "ShouldChange"
+			}
+		},
+		{
+			"type": "print",
+			"arg": {
+				"type": "varAccess",
+				"name": "shouldChange",
+				"path": {
+					"type": "directVal",
+					"value": []
+				}
+			}
+		},
+		{
+			"type": "exit"
+		}
+	]
+}

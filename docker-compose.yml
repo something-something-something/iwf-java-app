@@ -32,3 +32,12 @@ services:
   #     - 127.0.0.1:8090:80
   #   volumes:
   #     - ./js/:/usr/share/nginx/html/js
+  treeui:
+    build:
+      dockerfile: ./treeUInode.Dockerfile
+    volumes:
+      - ./treeui:/home/node/app/treeui
+    ports:
+      - 127.0.0.1:8000:8000
+    tty: true
+    entrypoint: pnpm run watch

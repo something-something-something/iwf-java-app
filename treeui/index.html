@@ -1,0 +1,12 @@
+<!doctype html>
+<html>
+	<head>
+		<script type="module" src="js/index.js"></script>
+		<script type="module" >
+		new EventSource('/esbuild').addEventListener('change', () => location.reload())
+		</script>
+	</head>
+	<body>
+		<my-elem></my-elem>
+	</body>
+</html>

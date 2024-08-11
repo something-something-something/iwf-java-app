@@ -5,3 +5,7 @@
 build
 
 bin
+
+node_modules
+
+treeuibuild

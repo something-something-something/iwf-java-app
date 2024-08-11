@@ -1,0 +1,24 @@
+{
+  "name": "iwf-java-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "esbuild treeui/index.ts --bundle --outdir=build/js  --format=esm --servedir=build --serve-fallback=treeui/index.html --watch",
+    "build": "esbuild treeui/index.ts --bundle --outdir=build/js  --format=esm --minify",
+    "fmt": "prettier ./treeui --write",
+    "fmt:check": "prettier ./treeui --check"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@9.7.0+sha512.dc09430156b427f5ecfc79888899e1c39d2d690f004be70e05230b72cb173d96839587545d09429b55ac3c429c801b4dc3c0e002f653830a420fa2dd4e3cf9cf",
+  "dependencies": {
+    "blockly": "^11.1.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.23.0",
+    "prettier": "^3.3.3"
+  }
+}

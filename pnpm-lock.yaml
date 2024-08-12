@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@blockly/field-multilineinput':
+        specifier: ^5.0.8
+        version: 5.0.8(blockly@11.1.1)
       blockly:
         specifier: ^11.1.1
         version: 11.1.1
@@ -20,6 +23,12 @@ importers:
         version: 3.3.3
 
 packages:
+
+  '@blockly/field-multilineinput@5.0.8':
+    resolution: {integrity: sha512-BcuipSDNcrmwBCtUsAnDfFFUxy5p2nmGvfewd4bu9OdunZ/2O2NVJ/05lFyVQiZBs3+sz+bq3eSbeDhMQ6e0Nw==}
+    engines: {node: '>=8.0.0'}
+    peerDependencies:
+      blockly: ^11.0.0
 
   '@esbuild/aix-ppc64@0.23.0':
     resolution: {integrity: sha512-3sG8Zwa5fMcA9bgqB8AfWPQ+HFke6uD3h1s3RIwUNK8EG7a4buxvuFTs3j1IMs2NXAk9F30C/FF4vxRgQCcmoQ==}
@@ -348,6 +357,10 @@ packages:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
 
 snapshots:
+
+  '@blockly/field-multilineinput@5.0.8(blockly@11.1.1)':
+    dependencies:
+      blockly: 11.1.1
 
   '@esbuild/aix-ppc64@0.23.0':
     optional: true

@@ -23,6 +23,14 @@ export const IF_BLOCK_TYPE = 'if_value_do';
 export const SORTA_WHILE_BLOCK_TYPE = 'sorta_a_while';
 export const SIMPLE_OP_BLOCK_TYPE = 'simple_op';
 export const EXIT_BLOCK_TYPE = 'exit';
+export const FUNC_CALL_BLOCK_TYPE = 'func_call';
+export const FUNC_DEFINE_BLOCK_TYPE = 'func_define';
+export const FUNC_RETURN_BLOCK_TYPE = 'func_return';
+export const FUNC_ARG_COPY_BLOCK_TYPE = 'copyArg';
+export const FUNC_ARG_REF_BLOCK_TYPE = 'func_ref_arg';
+
+const STATMENT_CONNECTION = ['statment'] as const;
+
 Blockly.defineBlocksWithJsonArray([
 	{
 		type: VALUE_BLOCK_TYPE,
@@ -53,8 +61,8 @@ Blockly.defineBlocksWithJsonArray([
 				check: ['variable', 'directValue'],
 			},
 		],
-		previousStatement: null,
-		nextStatement: null,
+		previousStatement: STATMENT_CONNECTION,
+		nextStatement: STATMENT_CONNECTION,
 	},
 	{
 		type: MAKE_DISPLAY_BLOCK_TYPE,
@@ -67,8 +75,8 @@ Blockly.defineBlocksWithJsonArray([
 				check: ['variable'],
 			},
 		],
-		previousStatement: null,
-		nextStatement: null,
+		previousStatement: STATMENT_CONNECTION,
+		nextStatement: STATMENT_CONNECTION,
 	},
 	{
 		type: UPDATE_DISPLAY_BLOCK_TYPE,
@@ -94,8 +102,8 @@ Blockly.defineBlocksWithJsonArray([
 				check: ['variable'],
 			},
 		],
-		previousStatement: null,
-		nextStatement: null,
+		previousStatement: STATMENT_CONNECTION,
+		nextStatement: STATMENT_CONNECTION,
 	},
 	{
 		type: MAKE_ASYNC_WRITABLE_BLOCK_TYPE,
@@ -108,8 +116,8 @@ Blockly.defineBlocksWithJsonArray([
 				check: ['variable'],
 			},
 		],
-		previousStatement: null,
-		nextStatement: null,
+		previousStatement: STATMENT_CONNECTION,
+		nextStatement: STATMENT_CONNECTION,
 	},
 	{
 		type: READ_ASYNC_WRITABLE_BLOCK_TYPE,
@@ -127,8 +135,8 @@ Blockly.defineBlocksWithJsonArray([
 				check: ['variable'],
 			},
 		],
-		previousStatement: null,
-		nextStatement: null,
+		previousStatement: STATMENT_CONNECTION,
+		nextStatement: STATMENT_CONNECTION,
 	},
 	{
 		type: SIMPLE_OP_BLOCK_TYPE,
@@ -164,8 +172,8 @@ Blockly.defineBlocksWithJsonArray([
 				check: ['variable', 'directValue'],
 			},
 		],
-		previousStatement: null,
-		nextStatement: null,
+		previousStatement: STATMENT_CONNECTION,
+		nextStatement: STATMENT_CONNECTION,
 	},
 	{
 		type: PRINT_BLOCK_TYPE,
@@ -178,8 +186,8 @@ Blockly.defineBlocksWithJsonArray([
 				check: ['variable', 'directValue'],
 			},
 		],
-		previousStatement: null,
-		nextStatement: null,
+		previousStatement: STATMENT_CONNECTION,
+		nextStatement: STATMENT_CONNECTION,
 	},
 	{
 		type: IF_BLOCK_TYPE,
@@ -197,6 +205,7 @@ Blockly.defineBlocksWithJsonArray([
 			{
 				type: 'input_statement',
 				name: 'then',
+				check: STATMENT_CONNECTION,
 			},
 		],
 		// message1: '= %1',
@@ -207,16 +216,16 @@ Blockly.defineBlocksWithJsonArray([
 		// 		check:['variable','directValue']
 		// 	},
 		// ],
-		previousStatement: null,
-		nextStatement: null,
+		previousStatement: STATMENT_CONNECTION,
+		nextStatement: STATMENT_CONNECTION,
 	},
 	{
 		type: EXIT_BLOCK_TYPE,
 		colour: '#ff0000',
 		message0: 'exit',
 		args0: [],
-		previousStatement: null,
-		nextStatement: null,
+		previousStatement: STATMENT_CONNECTION,
+		nextStatement: STATMENT_CONNECTION,
 	},
 	{
 		type: SORTA_WHILE_BLOCK_TYPE,
@@ -226,6 +235,7 @@ Blockly.defineBlocksWithJsonArray([
 			{
 				type: 'input_statement',
 				name: 'beforecheck',
+				check: STATMENT_CONNECTION,
 			},
 		],
 		message1: 'check %1',
@@ -241,11 +251,120 @@ Blockly.defineBlocksWithJsonArray([
 			{
 				type: 'input_statement',
 				name: 'then',
+				check: STATMENT_CONNECTION,
 			},
 		],
-		previousStatement: null,
-		nextStatement: null,
+		previousStatement: STATMENT_CONNECTION,
+		nextStatement: STATMENT_CONNECTION,
 	},
+
+	{
+		type: FUNC_CALL_BLOCK_TYPE,
+		colour: '#990099',
+		message0: 'set %1 to result func %2 with args: copy %3 ref %4',
+		args0: [
+			{
+				type: 'input_value',
+				name: 'resultVar',
+				check: ['variable'],
+			},
+
+			{
+				type: 'field_input',
+				name: 'funcName',
+			},
+			{
+				type: 'input_statement',
+				name: 'copyArgs',
+				check: ['copyArg'],
+			},
+			{
+				type: 'input_statement',
+				name: 'refArgs',
+				check: ['refArg'],
+			},
+		],
+		message1: 'async %1',
+		args1: [
+			{
+				type: 'field_checkbox',
+				name: 'isAsync',
+				checked: false,
+			},
+		],
+		previousStatement: STATMENT_CONNECTION,
+		nextStatement: STATMENT_CONNECTION,
+	},
+	{
+		type: FUNC_ARG_COPY_BLOCK_TYPE,
+		colour: '#990099',
+		message0: 'copy %1 to %2 in function scope',
+		args0: [
+			{
+				type: 'input_value',
+				name: 'value',
+				check: ['variable', 'directValue'],
+			},
+			{
+				type: 'field_input',
+				name: 'varNameInFunc',
+			},
+		],
+		previousStatement: ['copyArg'],
+		nextStatement: ['copyArg'],
+	},
+
+	{
+		type: FUNC_ARG_REF_BLOCK_TYPE,
+		colour: '#990099',
+		message0: 'link %1 to %2 in function scope',
+		args0: [
+			{
+				type: 'field_input',
+				name: 'varNameInCurrentScope',
+			},
+			{
+				type: 'field_input',
+				name: 'varNameInFunc',
+			},
+		],
+		previousStatement: ['refArg'],
+		nextStatement: ['refArg'],
+	},
+	{
+		type: FUNC_DEFINE_BLOCK_TYPE,
+		colour: '#990099',
+		message0: 'func %1 %2',
+		args0: [
+			{
+				type: 'field_input',
+				name: 'funcName',
+			},
+			{
+				type: 'input_statement',
+				name: 'children',
+				check: STATMENT_CONNECTION,
+			},
+		],
+		previousStatement: STATMENT_CONNECTION,
+		nextStatement: STATMENT_CONNECTION,
+	},
+
+	{
+		type: FUNC_RETURN_BLOCK_TYPE,
+		colour: '#990099',
+		message0: 'return %1',
+		args0: [
+			{
+				type: 'input_value',
+				name: 'value',
+				check: ['variable', 'directValue'],
+			},
+		],
+		previousStatement: STATMENT_CONNECTION,
+		nextStatement: STATMENT_CONNECTION,
+	},
+
 	{
 		type: VARIABLE_BLOCK_TYPE_BLOCK_TYPE,
 		colour: '#239239',
@@ -330,6 +449,7 @@ class BlocklyEditor extends HTMLElement {
 		testdiv.textContent = 'watch';
 		//shadow.appendChild(testdiv)
 		const workspace = Blockly.inject(blocklydiv, {
+			sounds: false,
 			move: {
 				scrollbars: true,
 				drag: true,
@@ -433,6 +553,27 @@ class BlocklyEditor extends HTMLElement {
 					{
 						kind: 'block',
 						type: EXIT_BLOCK_TYPE,
+					},
+					{
+						kind: 'block',
+						type: FUNC_DEFINE_BLOCK_TYPE,
+					},
+					{
+						kind: 'block',
+						type: FUNC_CALL_BLOCK_TYPE,
+					},
+					{
+						kind: 'block',
+						type: FUNC_ARG_COPY_BLOCK_TYPE,
+					},
+					{
+						kind: 'block',
+						type: FUNC_ARG_REF_BLOCK_TYPE,
+					},
+
+					{
+						kind: 'block',
+						type: FUNC_RETURN_BLOCK_TYPE,
 					},
 				],
 			},

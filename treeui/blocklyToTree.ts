@@ -1,6 +1,10 @@
 import * as Blockly from 'blockly';
 import {
 	EXIT_BLOCK_TYPE,
+	FUNC_ARG_COPY_BLOCK_TYPE,
+	FUNC_CALL_BLOCK_TYPE,
+	FUNC_DEFINE_BLOCK_TYPE,
+	FUNC_RETURN_BLOCK_TYPE,
 	IF_BLOCK_TYPE,
 	MAKE_ASYNC_WRITABLE_BLOCK_TYPE,
 	MAKE_DISPLAY_BLOCK_TYPE,
@@ -59,8 +63,11 @@ export type Statment =
 	| Exit
 	| Print
 	| SetVar
+	| FuncDef
+	| FuncCall
 	| SimpleOp
 	| SortaWhile
+	| FuncReturn
 	| MakeDisplay
 	| UpdateDisplay
 	| MakeAsyncWritable
@@ -110,6 +117,39 @@ export type SortaWhile = {
 	beforeCheckChildren: Statment[];
 	check: Value;
 	children: Statment[];
+};
+
+export const FUNC_CALL_TREE_TYPE = 'funcCall';
+
+export type FuncCall = {
+	type: typeof FUNC_CALL_TREE_TYPE;
+	funcName: string;
+	copy: {
+		value: Value;
+		varNameInFunc: string;
+	}[];
+	ref: {
+		target: string;
+		ref: string;
+	}[];
+	returnValue: Var;
+	isAsync: boolean;
+};
+
+export const FUNC_DEF_TREE_TYPE = 'funcDef';
+
+export type FuncDef = {
+	type: typeof FUNC_DEF_TREE_TYPE;
+	funcName: string;
+	children: Statment[];
+};
+
+export const FUNC_RETURN_TREE_TYPE = 'funcReturn';
+
+export type FuncReturn = {
+	type: typeof FUNC_RETURN_TREE_TYPE;
+
+	returnValue: Value;
 };
 
 export const READ_ASYNC_WRITABLE_TREE_TYPE = 'readAsyncWritable';
@@ -393,6 +433,111 @@ export function intoTree(b: Blockly.Block): SyntaxTree {
 					beforeCheckChildren: beforCheckList,
 					check: valTree,
 					children: thenTreeList,
+				};
+			}
+		}
+	} else if (b.type === FUNC_CALL_BLOCK_TYPE) {
+		const resultBlock = b.getInputTargetBlock('resultVar');
+		const copyArgBlock = b.getInputTargetBlock('copyArgs');
+		const refArgBlock = b.getInputTargetBlock('refArgs');
+		const funcName = b.getField('funcName')?.getText();
+		const isAsync: unknown = b.getField('isAsync')?.getValue();
+
+		if (
+			resultBlock !== null &&
+			funcName !== undefined &&
+			(isAsync === 'FALSE' || isAsync === 'TRUE')
+		) {
+			const copyArr: FuncCall['copy'] = [];
+			for (
+				let curBlock = copyArgBlock;
+				curBlock !== null;
+				curBlock = curBlock.getNextBlock()
+			) {
+				if (curBlock.type === FUNC_ARG_COPY_BLOCK_TYPE) {
+					const value = curBlock.getInputTargetBlock('value');
+					const varNameInFunc = curBlock.getField('varNameInFunc')?.getText();
+					if (value !== null && varNameInFunc !== undefined) {
+						const valueInTree = intoTree(value);
+						if (isValue(valueInTree)) {
+							copyArr.push({
+								value: valueInTree,
+								varNameInFunc: varNameInFunc,
+							});
+						}
+					}
+				}
+			}
+
+			const refArr: FuncCall['ref'] = [];
+			for (
+				let curBlock = refArgBlock;
+				curBlock !== null;
+				curBlock = curBlock.getNextBlock()
+			) {
+				if (curBlock.type === FUNC_ARG_COPY_BLOCK_TYPE) {
+					const varNameInCurrScope = curBlock
+						.getField('varNameInCurrentScope')
+						?.getText();
+					const varNameInFunc = curBlock.getField('varNameInFunc')?.getText();
+					if (varNameInCurrScope !== undefined && varNameInFunc !== undefined) {
+						refArr.push({
+							target: varNameInCurrScope,
+							ref: varNameInFunc,
+						});
+					}
+				}
+			}
+
+			const resultVar = intoTree(resultBlock);
+			if (resultVar.type === VAR_TREE_TYPE) {
+				return {
+					type: FUNC_CALL_TREE_TYPE,
+					copy: copyArr,
+					ref: refArr,
+					funcName: funcName,
+					isAsync: isAsync === 'TRUE',
+					returnValue: resultVar,
+				};
+			}
+		}
+	} else if (b.type === FUNC_DEFINE_BLOCK_TYPE) {
+		const funcName = b.getField('funcName')?.getText();
+		const theThenBlock = b.getInputTargetBlock('children');
+		if (funcName !== undefined) {
+			const functionChildren: Statment[] = [];
+			for (
+				let curBlock = theThenBlock;
+				curBlock !== null;
+				curBlock = curBlock.getNextBlock()
+			) {
+				const child = intoTree(curBlock);
+				if (isStatment(child)) {
+					functionChildren.push(child);
+				} else {
+					throw new Error(
+						'block not stament in function:' +
+							b.toString() +
+							' child: ' +
+							curBlock.toString(),
+					);
+				}
+			}
+
+			return {
+				type: FUNC_DEF_TREE_TYPE,
+				children: functionChildren,
+				funcName,
+			};
+		}
+	} else if (b.type === FUNC_RETURN_BLOCK_TYPE) {
+		const valueBlock = b.getInputTargetBlock('value');
+		if (valueBlock !== null) {
+			const valueTree = intoTree(valueBlock);
+			if (isValue(valueTree)) {
+				return {
+					type: FUNC_RETURN_TREE_TYPE,
+					returnValue: valueTree,
 				};
 			}
 		}

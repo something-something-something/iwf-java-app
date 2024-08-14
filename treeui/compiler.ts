@@ -2,6 +2,12 @@ import {
 	DirectValue,
 	Exit,
 	EXIT_TREE_TYPE,
+	FUNC_CALL_TREE_TYPE,
+	FUNC_DEF_TREE_TYPE,
+	FUNC_RETURN_TREE_TYPE,
+	FuncCall,
+	FuncDef,
+	FuncReturn,
 	If,
 	IF_TREE_TYPE,
 	MAKE_ASYNC_WRITABLE_TREE_TYPE,
@@ -212,6 +218,7 @@ const PARALLEL_TYPE = 'parallel';
 
 type PARALLEL = {
 	type: typeof PARALLEL_TYPE;
+	label: string;
 	copy: {
 		arg: InstructVal;
 		res: string;
@@ -243,9 +250,150 @@ export function compileTree(t: Statment | TreeRoot): Instruct[] {
 		return compileReadAsyncWritable(t);
 	} else if (t.type === IF_TREE_TYPE) {
 		return compileIf(t);
+	} else if (t.type === FUNC_CALL_TREE_TYPE) {
+		return compileFuncCall(t);
+	} else if (t.type === FUNC_DEF_TREE_TYPE) {
+		return compileFuncDef(t);
+	} else if (t.type === FUNC_RETURN_TREE_TYPE) {
+		return compileFuncReturn(t);
 	} else {
 		return compileSortaWhile(t);
 	}
+}
+
+const __COMPILER_RESERVED_PREFIX_FOR_FUNC_LABELS =
+	'__COMPILER_RESERVED_PREFIX_FOR_FUNC_LABELS:';
+
+const __COMPILER_RESERVED_NAME_FOR_RETURN_PROMIS_IN_FUNC_SCOPE =
+	'__COMPILER_RESERVED_NAME_FOR_RETURN_PROMIS_IN_FUNC_SCOPE';
+
+function compileFuncReturn(funcReturn: FuncReturn): Instruct[] {
+	return [
+		{
+			type: RESPROMISE_TYPE,
+			promiseIdArg: {
+				type: VAR_ACCESS,
+				name: __COMPILER_RESERVED_NAME_FOR_RETURN_PROMIS_IN_FUNC_SCOPE,
+				path: {
+					type: 'directVal',
+					value: [],
+				},
+			},
+
+			valueArg: compileVal(funcReturn.returnValue),
+		},
+		{ type: DEADEND_TYPE },
+	];
+}
+
+function compileFuncDef(funcDef: FuncDef): Instruct[] {
+	const skipLabel = 'skipFuncDef' + crypto.randomUUID();
+
+	let childInstructs: Instruct[] = [];
+	for (let c of funcDef.children) {
+		childInstructs = childInstructs.concat(compileTree(c));
+	}
+
+	const prefix: Instruct[] = [
+		{
+			type: BRANCH_TYPE,
+			arg: { type: 'directVal', value: true },
+			label: skipLabel,
+		},
+		{
+			type: LABEL_TYPE,
+			label: __COMPILER_RESERVED_PREFIX_FOR_FUNC_LABELS + funcDef.funcName,
+		},
+	];
+
+	const postFix: Instruct[] = [
+		{
+			type: RESPROMISE_TYPE,
+			promiseIdArg: {
+				type: VAR_ACCESS,
+				name: __COMPILER_RESERVED_NAME_FOR_RETURN_PROMIS_IN_FUNC_SCOPE,
+				path: {
+					type: 'directVal',
+					value: [],
+				},
+			},
+
+			valueArg: { type: DIRECT_VAL, value: 0 },
+		},
+		{ type: DEADEND_TYPE },
+		{
+			type: LABEL_TYPE,
+			label: skipLabel,
+		},
+	];
+	return prefix.concat(childInstructs).concat(postFix);
+}
+
+function compileFuncCall(funcCall: FuncCall): Instruct[] {
+	const varToPassToFuncForResult = 'funccallresult' + crypto.randomUUID();
+	const parallel: PARALLEL = {
+		type: PARALLEL_TYPE,
+		label: __COMPILER_RESERVED_PREFIX_FOR_FUNC_LABELS + funcCall.funcName,
+		copy: funcCall.copy
+			.map((ctrreeElem) => {
+				return {
+					arg: compileVal(ctrreeElem.value),
+					res: ctrreeElem.varNameInFunc,
+				};
+			})
+			.concat([
+				{
+					arg: {
+						type: VAR_ACCESS,
+						name: varToPassToFuncForResult,
+						path: { type: DIRECT_VAL, value: [] },
+					},
+					res: __COMPILER_RESERVED_NAME_FOR_RETURN_PROMIS_IN_FUNC_SCOPE,
+				},
+			]),
+		ref: funcCall.ref.map((rtreeElem) => {
+			return {
+				targetName: rtreeElem.target,
+				refName: rtreeElem.ref,
+			};
+		}),
+	};
+
+	const handleWhenSyncOrNot: Instruct[] = [];
+	if (!funcCall.isAsync) {
+		handleWhenSyncOrNot.push({
+			type: AWAIT_TYPE,
+			arg: {
+				type: VAR_ACCESS,
+				name: varToPassToFuncForResult,
+				path: { type: DIRECT_VAL, value: [] },
+			},
+			res: compileVar(funcCall.returnValue),
+		});
+	} else {
+		handleWhenSyncOrNot.push({
+			type: COPY_TYPE,
+			arg: {
+				type: VAR_ACCESS,
+				name: varToPassToFuncForResult,
+				path: { type: DIRECT_VAL, value: [] },
+			},
+			res: compileVar(funcCall.returnValue),
+		});
+	}
+
+	return [
+		{
+			type: MKPROMISE_TYPE,
+			res: {
+				name: varToPassToFuncForResult,
+				type: VAR_ACCESS,
+				path: { type: DIRECT_VAL, value: [] },
+			},
+		},
+		parallel,
+		...handleWhenSyncOrNot,
+	];
 }
 
 function compileSortaWhile(sortaWhile: SortaWhile): Instruct[] {

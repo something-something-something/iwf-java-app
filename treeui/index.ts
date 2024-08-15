@@ -392,6 +392,7 @@ class BlocklyEditor extends HTMLElement {
 	}
 	connectedCallback() {
 		const shadow = this.attachShadow({ mode: 'open' });
+
 		const mainslot = document.createElement('slot');
 		shadow.appendChild(mainslot);
 		const buttonCompile = document.createElement('button');
@@ -426,19 +427,26 @@ class BlocklyEditor extends HTMLElement {
 		inputLoad.classList.add('load-input');
 		shadow.appendChild(inputLoad);
 
-		const resultDetails = document.createElement('details');
+		const resultDialog = document.createElement('dialog');
+		resultDialog.classList.add('compile-result-dialog');
+		shadow.appendChild(resultDialog);
 
-		shadow.appendChild(resultDetails);
-
-		const resultsummary = document.createElement('summary');
-
+		const resultsummary = document.createElement('button');
+		resultsummary.classList.add('show-compile-result');
 		resultsummary.textContent = 'compile results';
-		resultDetails.appendChild(resultsummary);
+		shadow.appendChild(resultsummary);
+
+		const dialogForm = document.createElement('form');
+		dialogForm.method = 'dialog';
+		const dialogformclosebutton = document.createElement('button');
+		dialogformclosebutton.textContent = 'close dialog';
+		dialogForm.appendChild(dialogformclosebutton);
+
+		resultDialog.appendChild(dialogForm);
 
 		const resultDiv = document.createElement('div');
 		resultDiv.classList.add('compile-result');
-
-		resultDetails.appendChild(resultDiv);
+		resultDialog.appendChild(resultDiv);
 
 		const blocklydiv = document.createElement('div');
 		blocklydiv.className = 'blockly';
@@ -594,8 +602,11 @@ class BlocklyEditor extends HTMLElement {
 								const resultTextArea = document.createElement('textarea');
 
 								resultTextArea.value = JSON.stringify(instructObj, null, '\t');
-
+								resultTextArea.style.minWidth = '60vw';
+								resultTextArea.style.minHeight = '60vh';
+								resultTextArea.style.display = 'block';
 								resultelem.appendChild(resultTextArea);
+								this.showCompileResult();
 							}
 						}
 					} else if (target.classList.contains('save-button')) {
@@ -608,10 +619,23 @@ class BlocklyEditor extends HTMLElement {
 						if (input !== null && input instanceof HTMLInputElement) {
 							this.load(input.value);
 						}
+					} else if (target.classList.contains('show-compile-result')) {
+						this.showCompileResult();
 					}
 				}
 			}
 		});
+	}
+
+	showCompileResult() {
+		const shadow = this.shadowRoot;
+		if (shadow !== null) {
+			const dialog = shadow.querySelector('.compile-result-dialog');
+			console.log(dialog);
+			if (dialog instanceof HTMLDialogElement) {
+				dialog.showModal();
+			}
+		}
 	}
 
 	save(key: string) {

@@ -1,1 +1,1 @@
-export type JSON=number|string|null|boolean|JSON[]|{[keyof:string]:JSON};
+export type JSONType=number|string|null|boolean|JSONType[]|{[keyof:string]:JSONType};

@@ -45,7 +45,7 @@ customElements.define('start-form', class StartForm extends HTMLElement {
 			})
 		});
 		/**
-		 * @type {import('./type.ts').JSON}
+		 * @type {import('./type.ts').JSONType}
 		 */
 		const json = await res.json();
 		const pre = this.shadowRoot?.querySelector('pre');

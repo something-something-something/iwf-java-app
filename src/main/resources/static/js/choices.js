@@ -1,6 +1,7 @@
 //import {sendDataToDisplay} from "sendData";
 
 import { html } from 'htmlv1';
+import { sendDataToWorkflow } from './sendDataToWorkflow.js';
 
 
 /**
@@ -29,18 +30,7 @@ customElements.define('choice-options', class StartForm extends HTMLElement {
 					break;
 				}
 			}
-			const nextevent=new CustomEvent('submitToDisplayPromise',{
-				composed:true,
-				bubbles:true,
-				detail:{
-					data:{
-						choice:formData?.get('choice')?.toString()??null
-					}
-				}
-			});
-			console.log(nextevent)
-			this.dispatchEvent(nextevent)
-		
+			sendDataToWorkflow(this,{choice:formData?.get('choice')?.toString()??null})
 
 
 		})
@@ -79,7 +69,7 @@ customElements.define('choice-options', class StartForm extends HTMLElement {
 			})
 		});
 		/**
-		 * @type {import('./type.ts').JSON}
+		 * @type {import('./type.ts').JSONType}
 		 */
 		const json = await res.json();
 		const pre = document.createElement('pre');
@@ -87,3 +77,4 @@ customElements.define('choice-options', class StartForm extends HTMLElement {
 		this.shadowRoot?.append(pre)
 	}
 });
+

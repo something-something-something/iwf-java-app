@@ -427,6 +427,29 @@ class BlocklyEditor extends HTMLElement {
 		inputLoad.classList.add('load-input');
 		shadow.appendChild(inputLoad);
 
+		const buttonExportFile = document.createElement('button');
+		buttonExportFile.classList.add('export-button');
+		buttonExportFile.textContent = 'Export';
+		buttonExportFile.addEventListener('click', (ev) => {
+			this.serializeToFile();
+		});
+		shadow.appendChild(buttonExportFile);
+
+		const importFileLabel = document.createElement('label');
+		importFileLabel.textContent = 'Import';
+		const inputImportFile = document.createElement('input');
+		inputImportFile.type = 'file';
+		inputImportFile.classList.add('import-button');
+		inputImportFile.style.display = 'none';
+		inputImportFile.addEventListener('change', (ev) => {
+			if (ev.target instanceof HTMLInputElement) {
+				this.deserializeFromFileInput(ev.target);
+			}
+		});
+
+		importFileLabel.appendChild(inputImportFile);
+		shadow.appendChild(importFileLabel);
+
 		const resultDialog = document.createElement('dialog');
 		resultDialog.classList.add('compile-result-dialog');
 		shadow.appendChild(resultDialog);
@@ -674,6 +697,38 @@ class BlocklyEditor extends HTMLElement {
 		}
 		console.log('compile end');
 		return [];
+	}
+
+	serializeBlockly() {
+		if (this.#blocklyWorkspace !== null) {
+			return JSON.stringify(
+				Blockly.serialization.workspaces.save(this.#blocklyWorkspace),
+			);
+		}
+	}
+
+	serializeToFile() {
+		const str = this.serializeBlockly();
+		if (str !== undefined) {
+			const file = new File([str], 'export.json', { type: 'application/json' });
+
+			const url = URL.createObjectURL(file);
+			window.open(url);
+		}
+	}
+
+	deserializeBlockly(state: Record<string, unknown>) {
+		if (this.#blocklyWorkspace !== null) {
+			Blockly.serialization.workspaces.load(state, this.#blocklyWorkspace);
+		}
+	}
+
+	async deserializeFromFileInput(el: HTMLInputElement) {
+		if (el.files !== null) {
+			let file = el.files[0];
+			const filecontents = await file.text();
+			this.deserializeBlockly(JSON.parse(filecontents));
+		}
 	}
 }
 
